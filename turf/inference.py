@@ -1,0 +1,468 @@
+# -*- coding: utf-8 -*-
+"""
+:py:mod:`inference.py` - Inference classes, functions
+-----------------------------------------------------
+
+Functions and classes for hierarchical inference of NFL games
+
+@author: David Fleming, 2023
+
+"""
+
+
+import pandas as pd
+import numpy as np
+import pymc as pm
+import pytensor.tensor as pt
+import arviz as az
+from . import scrape
+from . import utils as ut
+
+
+__all__ = ["IndependentPoisson", "CorrelatedPoisson"]
+
+
+################################################################################
+#
+# Inference classes
+#
+################################################################################
+
+
+class _GenericModel(object):
+    """
+    Abstract class for pymc-based (hierarchical) models of NFL games
+    """
+
+    def __init__(self, season : scrape.Season) -> None:
+        """
+        Abstract model class _GenericModel object initialization function that
+        initializes and defines the typical run_inference sampling function
+
+        Parameters
+        ----------
+        self : self
+        season : turf.scrape.Season
+            Initialized season data that contains data required for inference
+
+        Returns
+        -------
+        None
+        """
+
+        # Cache season data
+        self.season = season
+
+        # Build coords 
+        self.build_coords()
+
+        # Build model
+        self.build_model()
+
+    
+    def build_coords(self) -> None:
+        """
+        Build coords for pymc data management from NFL season results
+
+        Parameters
+        ----------
+        self
+
+        Returns
+        -------
+        None
+        """
+
+        # Create list of all teams playing in the season and home, away team indicies
+        # for observed games
+        home_idx, teams = pd.factorize(self.season.played_df["home_team"], sort=True)
+        away_idx, _ = pd.factorize(self.season.played_df["away_team"], sort=True)
+        coords = {"teams" : teams.values, "games" : self.season.played_df.index.values,
+                  "att_def" : ['att', 'def']}
+
+        # Save as internal attributes for reference and inference
+        self._played_home_idx = home_idx
+        self._played_away_idx = away_idx
+        self._played_teams = teams
+        self._coords = coords
+
+
+    def build_model(self) -> None:
+        """
+        Build pymc model
+
+        Customize this in subclasses for different (hierarchical) model types
+
+        Parameters
+        ----------
+        self
+
+        Returns
+        -------
+        None
+        """
+
+        # Implement for subclasses
+        raise NotImplementedError()
+
+
+    def simulate_games(self, home_team : str,
+                       away_team : str, n : int=100, seed : int=None,
+                       rng : np.random.Generator=None) -> None:
+        """
+        Simulate an NFL game where away_team plays at home_team and trace
+        contains draws from the posterior distribution for model parameters,
+        e.g. atts and defs.
+
+        Parameters
+        ----------
+        home_team : str
+            Name of the home team, like STL
+        away_team : str
+            Name of the away team, like CHI
+        n : int (optional)
+            Number of games to simulate. Defaults to 100
+        seed : int (optional)
+            RNG seed. Defaults to 90
+        rng : numpy rng (optional)
+            Defaults to None and is initialized internally
+
+        Returns
+        -------
+        home_pts : int
+            number of points scored by the home team
+        away_pts : int
+            number of points scored by the away team
+        home_win : bool
+            whether or not the hometeam won
+        tie : str
+            indicates if the game finished in a tie or not
+        """
+
+        # Implement this method for subclasses
+        raise NotImplementedError()
+
+
+    def run_inference(self, draws : int=1000, tune : int=5000, progressbar : bool=True,
+                      init : str="jitter+adapt_diag", seed : int=None, chains : int=2,
+                      target_accept : float=0.9) -> None:
+        """
+        Run hierarchical inference for model using pymc
+
+        See https://docs.pymc.io/en/v3/api/inference.html for full parameter documentation
+
+        Results of inference are stored in the self.trace_ attribute
+
+        Parameters
+        ----------
+        draws : int (optional)
+            Number of MCMC draws to take. Defaults to 1000.
+        tune : int (optional)
+            Number of MCMC tuning steps to take. Defaults to 5000.
+        progressbar : bool (optional)
+            Whether or not to display the progress bar. Defaults to True.
+        init : str (optional)
+            Sampler initialization scheme. Defaults to jitter+adapt_diag
+        seed : int/list of int (optional)
+            RNG seed or seed for each chain. Defaults to None.
+        chains : int (optional)
+            Number of chains and cores to use to sample posterior. Defaults to 2.
+            Do not use more than 4. Caches in model as self.n_chains_
+        target_accept : float (optional)
+            Target acceptance fraction for HMC. Defaults to 0.9.
+
+        Returns
+        -------
+        None
+
+        """
+
+        # QC inputs
+        assert chains <= 4, "The number of MCMC chains can be at most 4"
+        self.n_chains_ = chains
+
+        err_msg = f"Must build self.model before calling run_inference method. See build_model() class method"
+        assert self.model is not None, err_msg
+
+        # Run inference
+        with self.model:
+            self.trace_ = pm.sample(draws=draws, tune=tune, init=init,
+                                    progressbar=progressbar, return_inferencedata=True,
+                                    random_seed=seed, chains=self.n_chains_, cores=self.n_chains_,
+                                    discard_tuned_samples=True, target_accept=target_accept)
+
+
+    def __repr__(self) -> str | None:
+        """
+        String output for printing the model
+        """
+
+        if self.model is not None:
+            return self.model.__str__()
+        else:
+            return None
+
+
+class IndependentPoisson(_GenericModel):
+    """
+    NFL Hierarchical generalized linear Poisson model similar to the model disscused
+    https://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
+    but assuming scores are uncorrelated
+    """
+
+    def __init__(self, season : scrape.Season) -> None:
+        """
+        Season object initialization function that pulls data for the given year
+        from https://www.pro-football-reference.com/years/{year}/games.htm and
+        automatically processes the data to compute the schedule, games played, etc
+
+        Parameters
+        ----------
+        self : self
+        season : turf.scrape.Season
+            Initialized season data that contains data required for inference
+
+        Returns
+        -------
+        None
+
+        """
+
+        # Init _GenericModel super (builds model and does everything else)
+        super().__init__(season)
+
+
+    def build_model(self) -> None:
+        """
+        Build pymc-based Sandard model based the initial paper from
+        https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf and the blog post:
+        https://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
+
+        Parameters
+        ----------
+        self
+
+        Returns
+        -------
+        None
+        """
+
+        # Build pymc model
+        with pm.Model(coords=self._coords) as self.model:
+
+            # Constant, observed data
+            home_team = pm.Data("home_team",
+                                self._played_home_idx,
+                                dims="games", mutable=False)
+            away_team = pm.Data("away_team",
+                                self._played_away_idx,
+                                dims="games", mutable=False)
+            obs_pts = pm.Data("obs_pts",
+                              self.season.played_df[["home_pts", "away_pts"]],
+                              dims=("games", "att_def"), mutable=False)
+
+            ### Initialize standard hierarchical model parameters
+
+            # Home effect and typical score intercept term
+            home = pm.Normal('home', mu=0.0, sigma=10)
+            intercept = pm.Normal('intercept', mu=0.0, sigma=10)
+
+            # Hyperpriors on attack and defense strength standard deviations
+            # No need for mean prior due to "sum-to-zero" constraint
+            sigma = pm.HalfCauchy("sigma", beta=5)
+
+            # Attacking, defensive strength for each team
+            atts_star = pm.Normal("atts_star", mu=0, sigma=sigma, dims="teams")
+            defs_star = pm.Normal("defs_star", mu=0, sigma=sigma, dims="teams")
+
+            # Impose "sum-to-zero" constraint
+            atts = pm.Deterministic('atts', atts_star - pt.mean(atts_star), dims="teams")
+            defs = pm.Deterministic('defs', defs_star - pt.mean(defs_star), dims="teams")
+
+            # Compute theta for the home and away teams (like expected score)
+            home_theta = pm.math.exp(intercept + home + atts[home_team] + defs[away_team])
+            away_theta = pm.math.exp(intercept + atts[away_team] + defs[home_team])
+            theta = pt.stack([home_theta, away_theta]).T
+
+            # Compute home and away point likelihood under log-linear model
+            # Recall - model points as a draws from
+            # conditionally-independent Poisson distribution: y | theta ~ Poisson(theta)
+
+            # Assume a Poisson likelihood for (uncorrelated) home and away points
+            pts = pm.Poisson('pts', mu=theta,
+                             observed=obs_pts, dims=("games", "att_def"))
+
+
+    def simulate_game(self, home_team : str,
+                      away_team : str, n : int=100, seed : int=90,
+                      rng : np.random.Generator=None) -> int | int | bool | bool:
+        """
+        Simulate an NFL game where away_team plays at home_team and trace
+        contains draws from the posterior distribution for model parameters,
+        e.g. atts and defs.
+
+        Parameters
+        ----------
+        home_team : str
+            Name of the home team, like STL
+        away_team : str
+            Name of the away team, like CHI
+        n : int (optional)
+            Number of games to simulate. Defaults to 100
+        seed : int (optional)
+            RNG seed. Defaults to 90
+        rng : numpy rng (optional)
+            Defaults to None and is initialized internally
+
+        Returns
+        -------
+        home_pts : int
+            number of points scored by the home team
+        away_pts : int
+            number of points scored by the away team
+        home_win : bool
+            whether or not the hometeam won
+        tie : str
+            indicates if the game finished in a tie or not
+        """
+
+        # Init rng
+        if rng is None:
+            rng = np.random.default_rng(seed)
+
+        # Assert model is fit with new util fn
+        assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to simulations"
+
+        # Draw random samples with replacement
+        inds = rng.choice(self.trace_.posterior.home.shape[-1], size=n, replace=True, shuffle=True)
+        chain = rng.integers(self.n_chains_, size=n)
+
+        # Holders
+        home = np.zeros(len(inds))
+        intercept = np.zeros(len(inds))
+        home_att = np.zeros(len(inds))
+        home_def = np.zeros(len(inds))
+        away_att = np.zeros(len(inds))
+        away_def = np.zeros(len(inds))
+
+        # Draw posterior sampls
+        for jj, vals in enumerate(zip(inds,chain)):
+            
+            # Extract indices
+            ii, cc = vals
+
+            # Extract parameters
+            home[jj] = float(self.trace_.posterior.home.loc[cc,ii])
+            intercept[jj] = float(self.trace_.posterior.intercept.loc[cc,ii])
+            home_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,home_team])
+            home_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,home_team])
+            away_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,away_team])
+            away_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,away_team])
+
+        # Compute home and away goals using log-linear model, draws for model parameters
+        # from posterior distribution. Recall - model points as a draws from
+        # conditionally-independent Poisson distribution: y | theta ~ Poisson(theta)
+        home_theta = np.exp(home + intercept + home_att + away_def)
+        away_theta = np.exp(intercept + away_att + home_def)
+        home_pts = rng.poisson(home_theta)
+        away_pts = rng.poisson(away_theta)
+
+        # Evaluate and process game results to more standard win, loss, etc nomenclature
+        outcomes = np.asarray([[ut._outcome(hpt, apt)] for hpt, apt in zip(home_pts, away_pts)]).squeeze()
+        home_win, tie = outcomes[:,0], outcomes[:,1]
+
+        return home_pts, away_pts, home_win, tie
+
+
+class CorrelatedPoisson(IndependentPoisson):
+    """
+    NFL Hierarchical generalized linear Poisson model similar to the model disccused
+    https://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
+
+    """
+
+    def __init__(self, season : scrape.Season) -> None:
+        """
+        Season object initialization function that pulls data for the given year
+        from https://www.pro-football-reference.com/years/{year}/games.htm and
+        automatically processes the data to compute the schedule, games played, etc
+
+        Parameters
+        ----------
+        self : self
+        season : turf.scrape.Season
+            Initialized season data that contains data required for inference
+
+        Returns
+        -------
+        None
+
+        """
+
+        # Init StandardModel super (builds model and does everything else)
+        super().__init__(season)
+
+
+    def build_model(self) -> None:
+        """
+        Build pymc-based Sandard model based the initial paper from
+        https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf and the blog post:
+        https://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
+        but with this model, I edited such that one can use a poisson
+        
+        Parameters
+        ----------
+        self
+
+        Returns
+        -------
+        None
+        """
+
+        # Build pymc model
+        with pm.Model(coords=self._coords) as self.model:
+
+            # Constant, observed data
+            home_team = pm.Data("home_team",
+                                self._played_home_idx,
+                                dims="games", mutable=False)
+            away_team = pm.Data("away_team",
+                                self._played_away_idx,
+                                dims="games", mutable=False)
+            obs_pts = pm.Data("obs_pts",
+                              self.season.played_df[["home_pts", "away_pts"]],
+                              dims=("games", "att_def"), mutable=False)
+
+            ### Initialize hierarchical model parameters
+
+            # Home effect and typical score intercept term
+            home = pm.Normal('home', mu=0.0, sigma=10)
+            intercept = pm.Normal('intercept', mu=0.0, sigma=10)
+
+            # Prior standard deviation for att and def terms
+            lkj_sd = pm.HalfNormal.dist(shape=2)
+
+            # Prior on correlation matrix
+            chol, corr, stds = pm.LKJCholeskyCov("chol_cov", n=2, eta=1, sd_dist=lkj_sd,
+                                                 compute_corr=True, store_in_trace=True)
+            
+            # Attacking, defensive strength for each team modeled as multivariate normal
+            atts_defs_star = pm.MvNormal('atts_defs_star', mu=0, chol=chol, dims=("teams", "att_def"))
+
+            # Impose "sum-to-zero" constraint
+            atts = pm.Deterministic('atts', atts_defs_star[:,0] - pt.mean(atts_defs_star[:,0]), dims="teams")
+            defs = pm.Deterministic('defs', atts_defs_star[:,1] - pt.mean(atts_defs_star[:,1]), dims="teams")
+
+            # Additive model for scores in log space (like log expected score)
+            log_home_theta = intercept + home + atts[home_team] + defs[away_team]
+            log_away_theta = intercept + atts[away_team] + defs[home_team]
+            log_theta = pt.stack([log_home_theta, log_away_theta]).T
+            theta = pm.math.exp(log_theta)
+
+            # Compute home and away point likelihood under log-linear model
+            # Recall - model points as a draws from
+            # conditionally-independent Poisson distribution: y | theta ~ Poisson(theta)
+
+            # Assume a Poisson likelihood for (correlated in log theta space) home and away points
+            pts = pm.Poisson('pts', mu=theta,
+                             observed=obs_pts, dims=("games", "att_def"))
