@@ -41,7 +41,7 @@ def version(path):
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
 
-
+# Pull version from init
 VERSION = version('turf/__init__.py')
 
 # Setup!
@@ -50,7 +50,7 @@ setup(name = 'turf',
       description = 'NFL Hierarchical Monte Carlo inference and game simulation',
       long_description = readme(),
       classifiers = [
-                      'Development Status :: 2 - Beta',
+                      'Development Status :: 5 - Production/Stable',
                       'Programming Language :: Python :: 3.9',
                       'Programming Language :: Python :: 3.10'
                     ],
