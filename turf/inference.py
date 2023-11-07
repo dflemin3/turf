@@ -15,6 +15,7 @@ import numpy as np
 import pymc as pm
 import pytensor.tensor as pt
 import arviz as az
+from typing import Union
 from . import scrape
 from . import utils as ut
 
@@ -192,7 +193,7 @@ class _GenericModel(object):
                                     discard_tuned_samples=True, target_accept=target_accept)
 
 
-    def __repr__(self) -> str | None:
+    def __repr__(self) -> str:
         """
         String output for printing the model
         """
@@ -200,13 +201,13 @@ class _GenericModel(object):
         if self.model is not None:
             return self.model.__str__()
         else:
-            return None
+            return 'Model has not been initialized'
 
 
 class IndependentPoisson(_GenericModel):
     """
     NFL Hierarchical generalized linear Poisson model similar to the model disscused
-    https://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
+    https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
     but assuming scores are uncorrelated
     """
 
@@ -235,8 +236,7 @@ class IndependentPoisson(_GenericModel):
     def build_model(self) -> None:
         """
         Build pymc-based Sandard model based the initial paper from
-        https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf and the blog post:
-        https://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
+        https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
 
         Parameters
         ----------
@@ -295,7 +295,7 @@ class IndependentPoisson(_GenericModel):
 
     def simulate_game(self, home_team : str,
                       away_team : str, n : int=100, seed : int=90,
-                      rng : np.random.Generator=None) -> int | int | bool | bool:
+                      rng : np.random.Generator=None) -> Union[int, int, bool, bool]:
         """
         Simulate an NFL game where away_team plays at home_team and trace
         contains draws from the posterior distribution for model parameters,
@@ -304,9 +304,11 @@ class IndependentPoisson(_GenericModel):
         Parameters
         ----------
         home_team : str
-            Name of the home team, like STL
+            Name of the home team, like STL. Can also be "median" where parameters
+            are 0 for the median team.
         away_team : str
-            Name of the away team, like CHI
+            Name of the away team, like CHI. Can also be "median" where parameters
+            are 0 for the median team.
         n : int (optional)
             Number of games to simulate. Defaults to 100
         seed : int (optional)
@@ -354,10 +356,20 @@ class IndependentPoisson(_GenericModel):
             # Extract parameters
             home[jj] = float(self.trace_.posterior.home.loc[cc,ii])
             intercept[jj] = float(self.trace_.posterior.intercept.loc[cc,ii])
-            home_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,home_team])
-            home_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,home_team])
-            away_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,away_team])
-            away_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,away_team])
+            
+            # Extract posterior parameters for team, but allow median team to play
+            if home_team == 'median':
+                home_att[jj] = 0.0
+                home_def[jj] = 0.0
+            else:
+                home_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,home_team])
+                home_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,home_team])
+            if away_team == 'median':
+                away_att[jj] = 0.0
+                away_def[jj] = 0.0
+            else:
+                away_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,away_team])
+                away_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,away_team])
 
         # Compute home and away goals using log-linear model, draws for model parameters
         # from posterior distribution. Recall - model points as a draws from
@@ -372,6 +384,63 @@ class IndependentPoisson(_GenericModel):
         home_win, tie = outcomes[:,0], outcomes[:,1]
 
         return home_pts, away_pts, home_win, tie
+
+    
+    def sos(self, n : int=100) -> Union[np.ndarray, np.ndarray]:
+        """
+        Simulate NFL results to estimate a team's strength of schedule 
+        as the win percentage of the median team playing the same schedule.
+
+        Parameters
+        ----------
+        n : int (optional)
+            Number of times to simulate each game. Defaults to 100.
+
+        Returns
+        -------
+        sos : np.ndarray
+            Strength of schedule for teams in team_names
+        team_names : np.ndarray
+            Array of team names aligned with SOS
+        """
+
+        # Assert model is fit with new util fn
+        assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to simulations"
+
+        # Extract team names from trace
+        team_names = self.trace_.posterior.coords['teams'].values
+        sos = np.zeros(len(team_names))
+
+        # Simulate winning percentage of median team for given team's schedule
+        for ii, team in enumerate(team_names):
+            results = []
+        
+            # Games where team is home team
+            mask = (self.season.full_schedule['home_team'] == team)
+            home_games = self.season.full_schedule[mask]
+            
+            # Games where team is away team
+            mask = (self.season.full_schedule['away_team'] == team)
+            away_games = self.season.full_schedule[mask]
+            
+            # First play games where team is at home
+            for jj in range(len(home_games)):
+            
+                # Simulate games
+                _, _, home_win, _ = self.simulate_game('median', home_games.iloc[jj]['away_team'], n=n, seed=None)
+                results.append(np.mean(home_win))
+            
+            # Then play games where team is away
+            for jj in range(len(away_games)):
+            
+                # Simulate games
+                _, _, home_win, _ = self.simulate_game(away_games.iloc[jj]['home_team'], 'median', n=n, seed=None)
+                results.append(1 - np.mean(home_win))
+        
+            # Cache results for team
+            sos[ii] = np.mean(results)
+
+        return sos, team_names
 
 
 class CorrelatedPoisson(IndependentPoisson):

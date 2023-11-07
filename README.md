@@ -24,15 +24,15 @@ python -m pip install .
 ```
 to install.
 
-Example
-=======
+Simple example
+==============
 
 Below gives a simple example for how to use `turf` to run a hierarchical Bayesian inference on NFL season results.
 
 ```python
 import pymc as pm
 import numpy as np
-from turf import scrape, utils, inference
+from turf import scrape, inference
 
 # Pull season results to-date
 season = scrape.Season(year=2023, week=None)
@@ -73,3 +73,12 @@ print()
 # ML: - odds of CIN ML : 33.00%
 # Median outcome: BUF 22 | CIN 19
 ```
+
+Analyses
+========
+
+Check out the notebook that demonstrate how to characterize teams' offensive and defensive strengths and simulate games:
+- [Example and simulation](https://github.com/dflemin3/turf/blob/main/examples/example.ipynb)
+
+Check out the following notebook that demonstrates how to calculate a team's strength of schedule (SoS):
+- [SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/sos.ipynb)
