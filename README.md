@@ -27,7 +27,8 @@ to install.
 Simple example
 ==============
 
-Below gives a simple example for how to use `turf` to run a hierarchical Bayesian inference on NFL season results.
+Below gives a simple example for how to use `turf` to run a hierarchical Bayesian inference on NFL season results
+for the Thursday Night Football game, Carolina at Chicago, on November 9th, 2023.
 
 ```python
 import pymc as pm
@@ -44,10 +45,10 @@ model = inference.CorrelatedPoisson(season)
 model.run_inference(tune=1000, draws=1000, target_accept=0.9, chains=4)
 
 # Simulate a game - Buffalo Bills at the Cincinnati Bengals
-away_team = "BUF"
-home_team = "CIN"
-ou = 50.5
-home_spread = -2.5
+away_team = "CAR"
+home_team = "CHI"
+ou = 38
+home_spread = -3.5
 
 # Simulate n game outcomes
 home_pts, away_pts, home_win, tie = model.simulate_game(home_team, away_team, n=1000, seed=None)
@@ -66,12 +67,11 @@ print(f"ML: - odds of {home_team} ML : {np.round(100*home_ml, decimals=2):.2f}%"
 print(f"Median outcome: {away_team} {np.median(away_pts):.0f} | {home_team} {np.median(home_pts):.0f}")
 print()
 
-# Output from above print statements
-# ---BUF at CIN---
-# O/U: 50.5 - Over odds : 11.80%
-# Spread: CIN -2.5 - odds of CIN cover : 24.30%
-# ML: - odds of CIN ML : 33.00%
-# Median outcome: BUF 22 | CIN 19
+# ---CAR at CHI---
+# O/U: 38 - Over odds : 82.64%
+# Spread: CHI -3.5 - odds of CHI cover : 56.10%
+# ML: - odds of CHI ML : 71.51%
+# Median outcome: CAR 20 | CHI 25
 ```
 
 Analyses
