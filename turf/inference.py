@@ -145,7 +145,7 @@ class _GenericModel(object):
 
 
     def run_inference(self, draws : int=1000, tune : int=5000, progressbar : bool=True,
-                      init : str="jitter+adapt_diag", seed : int=None, chains : int=2,
+                      init : str="jitter+adapt_diag", seed : int=None, chains : int=4,
                       target_accept : float=0.9) -> None:
         """
         Run hierarchical inference for model using pymc
@@ -167,7 +167,7 @@ class _GenericModel(object):
         seed : int/list of int (optional)
             RNG seed or seed for each chain. Defaults to None.
         chains : int (optional)
-            Number of chains and cores to use to sample posterior. Defaults to 2.
+            Number of chains and cores to use to sample posterior. Defaults to 4.
             Do not use more than 4. Caches in model as self.n_chains_
         target_accept : float (optional)
             Target acceptance fraction for HMC. Defaults to 0.9.
@@ -179,7 +179,6 @@ class _GenericModel(object):
         """
 
         # QC inputs
-        assert chains <= 4, "The number of MCMC chains can be at most 4"
         self.n_chains_ = chains
 
         err_msg = f"Must build self.model before calling run_inference method. See build_model() class method"
@@ -191,6 +190,77 @@ class _GenericModel(object):
                                     progressbar=progressbar, return_inferencedata=True,
                                     random_seed=seed, chains=self.n_chains_, cores=self.n_chains_,
                                     discard_tuned_samples=True, target_accept=target_accept)
+    
+
+    def sos(self, n : int=100, mode='full') -> Union[np.ndarray, np.ndarray]:
+        """
+        Simulate NFL results to estimate a team's strength of schedule 
+        as the win percentage of the median team playing the same schedule.
+
+        Parameters
+        ----------
+        n : int (optional)
+            Number of times to simulate each game. Defaults to 100.
+        mode : str (optional)
+            Estimate SoS for the 'full', 'played', or 'unplayed' games 
+            of the season for each team
+
+        Returns
+        -------
+        sos : np.ndarray
+            Strength of schedule for teams in team_names
+        team_names : np.ndarray
+            Array of team names aligned with SOS
+        """
+
+        # Assert model is fit with new util fn
+        assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to simulations"
+
+        # Extract df of all games or remaining games
+        if mode == 'full':
+            game_df = self.season.full_schedule.copy()
+        elif mode == 'played':
+            game_df = self.season.played_df.copy()
+        elif mode == 'unplayed':
+            game_df = self.season.unplayed_df.copy()
+        else:
+            err_msg = "mode must be one of 'full', 'played', or 'unplayed'. See docstring for more info"
+            raise RuntimeError(err_msg)
+
+        # Extract team names from trace
+        team_names = self.trace_.posterior.coords['teams'].values
+        sos = np.zeros(len(team_names))
+
+        # Simulate winning percentage of median team for given team's schedule
+        for ii, team in enumerate(team_names):
+            results = []
+        
+            # Games where team is home team
+            mask = (game_df['home_team'] == team)
+            home_games = game_df[mask]
+            
+            # Games where team is away team
+            mask = (game_df['away_team'] == team)
+            away_games = game_df[mask]
+            
+            # First play games where team is at home
+            for jj in range(len(home_games)):
+            
+                # Simulate games
+                _, _, home_win, _ = self.simulate_game('median', home_games.iloc[jj]['away_team'], n=n, seed=None)
+                results.append(np.mean(home_win))
+            
+            # Then play games where team is away
+            for jj in range(len(away_games)):
+            
+                # Simulate games
+                _, _, home_win, _ = self.simulate_game(away_games.iloc[jj]['home_team'], 'median', n=n, seed=None)
+                results.append(1 - np.mean(home_win))
+        
+            # Cache results for team
+            sos[ii] = np.mean(results)
+
+        return sos, team_names
 
 
     def __repr__(self) -> str:
@@ -208,7 +278,7 @@ class IndependentPoisson(_GenericModel):
     """
     NFL Hierarchical generalized linear Poisson model similar to the model disscused
     https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
-    but assuming scores are uncorrelated
+    but assuming log attacking and defensive strengths are uncorrelated
     """
 
     def __init__(self, season : scrape.Season) -> None:
@@ -385,82 +455,13 @@ class IndependentPoisson(_GenericModel):
 
         return home_pts, away_pts, home_win, tie
 
-    
-    def sos(self, n : int=100, mode='full') -> Union[np.ndarray, np.ndarray]:
-        """
-        Simulate NFL results to estimate a team's strength of schedule 
-        as the win percentage of the median team playing the same schedule.
-
-        Parameters
-        ----------
-        n : int (optional)
-            Number of times to simulate each game. Defaults to 100.
-        mode : str (optional)
-            Estimate SoS for the 'full', 'played', or 'unplayed' games 
-            of the season for each team
-
-        Returns
-        -------
-        sos : np.ndarray
-            Strength of schedule for teams in team_names
-        team_names : np.ndarray
-            Array of team names aligned with SOS
-        """
-
-        # Assert model is fit with new util fn
-        assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to simulations"
-
-        # Extract df of all games or remaining games
-        if mode == 'full':
-            game_df = self.season.full_schedule.copy()
-        elif mode == 'played':
-            game_df = self.season.played_df.copy()
-        elif mode == 'unplayed':
-            game_df = self.season.unplayed_df.copy()
-        else:
-            err_msg = "mode must be one of 'full', 'played', or 'unplayed'. See docstring for more info"
-            raise RuntimeError(err_msg)
-
-        # Extract team names from trace
-        team_names = self.trace_.posterior.coords['teams'].values
-        sos = np.zeros(len(team_names))
-
-        # Simulate winning percentage of median team for given team's schedule
-        for ii, team in enumerate(team_names):
-            results = []
-        
-            # Games where team is home team
-            mask = (game_df['home_team'] == team)
-            home_games = game_df[mask]
-            
-            # Games where team is away team
-            mask = (game_df['away_team'] == team)
-            away_games = game_df[mask]
-            
-            # First play games where team is at home
-            for jj in range(len(home_games)):
-            
-                # Simulate games
-                _, _, home_win, _ = self.simulate_game('median', home_games.iloc[jj]['away_team'], n=n, seed=None)
-                results.append(np.mean(home_win))
-            
-            # Then play games where team is away
-            for jj in range(len(away_games)):
-            
-                # Simulate games
-                _, _, home_win, _ = self.simulate_game(away_games.iloc[jj]['home_team'], 'median', n=n, seed=None)
-                results.append(1 - np.mean(home_win))
-        
-            # Cache results for team
-            sos[ii] = np.mean(results)
-
-        return sos, team_names
 
 
 class CorrelatedPoisson(IndependentPoisson):
     """
     NFL Hierarchical generalized linear Poisson model similar to the model disccused
-    https://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
+    https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf but with correlated 
+    log attacking and defensive strength
 
     """
 
@@ -489,9 +490,7 @@ class CorrelatedPoisson(IndependentPoisson):
     def build_model(self) -> None:
         """
         Build pymc-based Sandard model based the initial paper from
-        https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf and the blog post:
-        https://danielweitzenfeld.github.io/passtheroc/blog/2014/10/28/bayes-premier-league/
-        but with this model, I edited such that one can use a poisson
+        https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
         
         Parameters
         ----------
