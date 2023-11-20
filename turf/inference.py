@@ -146,7 +146,7 @@ class _GenericModel(object):
 
     def run_inference(self, draws : int=1000, tune : int=5000, progressbar : bool=True,
                       init : str="jitter+adapt_diag", seed : int=None, chains : int=4,
-                      target_accept : float=0.9) -> None:
+                      target_accept : float=0.9, cache_loglike : bool=True) -> None:
         """
         Run hierarchical inference for model using pymc
 
@@ -171,6 +171,8 @@ class _GenericModel(object):
             Do not use more than 4. Caches in model as self.n_chains_
         target_accept : float (optional)
             Target acceptance fraction for HMC. Defaults to 0.9.
+        cache_loglike : bool (optional)
+            Whether or not to save the loglikelihood in the trace. Defaults to True.
 
         Returns
         -------
@@ -181,6 +183,13 @@ class _GenericModel(object):
         # QC inputs
         self.n_chains_ = chains
 
+        # Cache loglikelihood?
+        if cache_loglike:
+            idata_kwargs = {'log_likelihood' : True}
+        else:
+            idata_kwargs = {}
+
+        # Was the model set?
         err_msg = f"Must build self.model before calling run_inference method. See build_model() class method"
         assert self.model is not None, err_msg
 
@@ -189,7 +198,8 @@ class _GenericModel(object):
             self.trace_ = pm.sample(draws=draws, tune=tune, init=init,
                                     progressbar=progressbar, return_inferencedata=True,
                                     random_seed=seed, chains=self.n_chains_, cores=self.n_chains_,
-                                    discard_tuned_samples=True, target_accept=target_accept)
+                                    discard_tuned_samples=True, target_accept=target_accept,
+                                    idata_kwargs=idata_kwargs)
     
 
     def sos(self, n : int=100, mode='full') -> Union[np.ndarray, np.ndarray]:
