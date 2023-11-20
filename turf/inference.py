@@ -288,7 +288,8 @@ class IndependentPoisson(_GenericModel):
     """
     NFL Hierarchical generalized linear Poisson model similar to the model disscused
     https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
-    but assuming log attacking and defensive strengths are uncorrelated
+    but assuming log attacking and defensive strengths are uncorrelated but using 
+    student t distributions instead of normals
     """
 
     def __init__(self, season : scrape.Season) -> None:
@@ -351,9 +352,12 @@ class IndependentPoisson(_GenericModel):
             # No need for mean prior due to "sum-to-zero" constraint
             sigma = pm.HalfCauchy("sigma", beta=5)
 
+            # Prior for nu
+            nu = pm.Gamma("nu", alpha=2, beta=0.1)
+
             # Attacking, defensive strength for each team
-            atts_star = pm.Normal("atts_star", mu=0, sigma=sigma, dims="teams")
-            defs_star = pm.Normal("defs_star", mu=0, sigma=sigma, dims="teams")
+            atts_star = pm.StudentT("atts_star", nu=nu, mu=0, sigma=sigma, dims="teams")
+            defs_star = pm.StudentT("defs_star", nu=nu, mu=0, sigma=sigma, dims="teams")
 
             # Impose "sum-to-zero" constraint
             atts = pm.Deterministic('atts', atts_star - pt.mean(atts_star), dims="teams")
@@ -531,6 +535,9 @@ class CorrelatedPoisson(IndependentPoisson):
             home = pm.Normal('home', mu=0.0, sigma=10)
             intercept = pm.Normal('intercept', mu=0.0, sigma=10)
 
+            # Prior for nu
+            nu = pm.Gamma("nu", alpha=2, beta=0.1)
+
             # Prior standard deviation for att and def terms
             lkj_sd = pm.HalfNormal.dist(shape=2)
 
@@ -539,7 +546,8 @@ class CorrelatedPoisson(IndependentPoisson):
                                                  compute_corr=True, store_in_trace=True)
             
             # Attacking, defensive strength for each team modeled as multivariate normal
-            atts_defs_star = pm.MvNormal('atts_defs_star', mu=0, chol=chol, dims=("teams", "att_def"))
+            #atts_defs_star = pm.MvNormal('atts_defs_star', mu=0, chol=chol, dims=("teams", "att_def"))
+            atts_defs_star = pm.MvStudentT('atts_defs_star', nu=nu, mu=0, chol=chol, dims=("teams", "att_def"))
 
             # Impose "sum-to-zero" constraint
             atts = pm.Deterministic('atts', atts_defs_star[:,0] - pt.mean(atts_defs_star[:,0]), dims="teams")
