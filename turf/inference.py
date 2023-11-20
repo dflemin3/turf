@@ -386,7 +386,7 @@ class IndependentPoisson(_GenericModel):
         return home_pts, away_pts, home_win, tie
 
     
-    def sos(self, n : int=100) -> Union[np.ndarray, np.ndarray]:
+    def sos(self, n : int=100, mode='full') -> Union[np.ndarray, np.ndarray]:
         """
         Simulate NFL results to estimate a team's strength of schedule 
         as the win percentage of the median team playing the same schedule.
@@ -395,6 +395,9 @@ class IndependentPoisson(_GenericModel):
         ----------
         n : int (optional)
             Number of times to simulate each game. Defaults to 100.
+        mode : str (optional)
+            Estimate SoS for the 'full', 'played', or 'unplayed' games 
+            of the season for each team
 
         Returns
         -------
@@ -407,6 +410,17 @@ class IndependentPoisson(_GenericModel):
         # Assert model is fit with new util fn
         assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to simulations"
 
+        # Extract df of all games or remaining games
+        if mode == 'full':
+            game_df = self.season.full_schedule.copy()
+        elif mode == 'played':
+            game_df = self.season.played_df.copy()
+        elif mode == 'unplayed':
+            game_df = self.season.unplayed_df.copy()
+        else:
+            err_msg = "mode must be one of 'full', 'played', or 'unplayed'. See docstring for more info"
+            raise RuntimeError(err_msg)
+
         # Extract team names from trace
         team_names = self.trace_.posterior.coords['teams'].values
         sos = np.zeros(len(team_names))
@@ -416,12 +430,12 @@ class IndependentPoisson(_GenericModel):
             results = []
         
             # Games where team is home team
-            mask = (self.season.full_schedule['home_team'] == team)
-            home_games = self.season.full_schedule[mask]
+            mask = (game_df['home_team'] == team)
+            home_games = game_df[mask]
             
             # Games where team is away team
-            mask = (self.season.full_schedule['away_team'] == team)
-            away_games = self.season.full_schedule[mask]
+            mask = (game_df['away_team'] == team)
+            away_games = game_df[mask]
             
             # First play games where team is at home
             for jj in range(len(home_games)):
