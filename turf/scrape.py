@@ -30,7 +30,7 @@ class Season(object):
     and results
     """
 
-    def __init__(self, year : int=2022, week : int=None) -> None: 
+    def __init__(self, year : int=2022, week : int=None, path : str=None) -> None: 
         """
         Season object initialization function that pulls data for the given year
         from https://www.pro-football-reference.com/years/{year}/games.htm and
@@ -48,6 +48,9 @@ class Season(object):
             Week is constrained to 0 < week <= 18. Defaults to None,
             so games with NaN scores have not been played as of the morning
             the game was scraped (aka normal expected results).
+        path : str (optional)
+            Path to pre-cached data to build Season object. If this is provided,
+            this file is loaded and used instead of scraping the data.
         """
 
         # Cache year, week
@@ -60,8 +63,12 @@ class Season(object):
             assert isinstance(self.week, int), err_msg
             assert 0 < self.week <= 18, err_msg
 
+       # Load data from local path
+        if path is not None:
+            self.raw_season_df = pd.read_csv(path)
         # Pull raw season data from pro-football-reference.com
-        self.raw_season_df = pull_full_season_games_raw(year=self.year)
+        else:
+            self.raw_season_df = pull_full_season_games_raw(year=self.year)
 
         # If self.week is set, QC and set all scores >= self.week to NaN as if games
         # have not been played. This will always drop playoff games
@@ -98,6 +105,24 @@ class Season(object):
         """
 
         return f"{self.year}-{self.year+1} NFL season data up to Week {self.week}"
+
+    
+    def save(self, path : str="season.csv") -> None:
+        """
+        Save raw season data as a csv named path
+
+        Parameters
+        ----------
+        path : str
+            Defaults to "season.csv" in the cwd
+        
+        Returns
+        -------
+        None
+        """
+
+        # Cache raw season data as csv
+        self.raw_season_df.to_csv(path, index=False, header=True)
 
 
 ################################################################################

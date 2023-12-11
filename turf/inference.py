@@ -20,7 +20,7 @@ from . import scrape
 from . import utils as ut
 
 
-__all__ = ["IndependentPoisson", "CorrelatedPoisson"]
+__all__ = ["IndependentPoisson", "CorrelatedPoisson", "IndependentNegativeBinomial"]
 
 
 ################################################################################
@@ -35,7 +35,7 @@ class _GenericModel(object):
     Abstract class for pymc-based (hierarchical) models of NFL games
     """
 
-    def __init__(self, season : scrape.Season) -> None:
+    def __init__(self, season : scrape.Season, path : str=None) -> None:
         """
         Abstract model class _GenericModel object initialization function that
         initializes and defines the typical run_inference sampling function
@@ -45,6 +45,8 @@ class _GenericModel(object):
         self : self
         season : turf.scrape.Season
             Initialized season data that contains data required for inference
+        path : str (optional)
+            Path to pre-computed trace. Defaults to None, aka, ya need to sample the model
 
         Returns
         -------
@@ -59,6 +61,15 @@ class _GenericModel(object):
 
         # Build model
         self.build_model()
+
+        # Load trace?
+        self.path = path
+        if path is not None:
+            # Load trace
+            self.trace_ = az.from_netcdf(self.path)
+
+            # Load number of chains
+            self.n_chains_ = self.trace_.posterior.chain.shape[0]
 
     
     def build_coords(self) -> None:
@@ -75,11 +86,11 @@ class _GenericModel(object):
         """
 
         # Create list of all teams playing in the season and home, away team indicies
-        # for observed games
+        # for observed games, and other dimensions for correlations and groups
         home_idx, teams = pd.factorize(self.season.played_df["home_team"], sort=True)
         away_idx, _ = pd.factorize(self.season.played_df["away_team"], sort=True)
         coords = {"teams" : teams.values, "games" : self.season.played_df.index.values,
-                  "att_def" : ['att', 'def']}
+                  "att_def" : ['att', 'def'], "groups" : ['bad', 'average', 'good']}
 
         # Save as internal attributes for reference and inference
         self._played_home_idx = home_idx
@@ -283,6 +294,24 @@ class _GenericModel(object):
         else:
             return 'Model has not been initialized'
 
+    
+    def save(self, path : str="trace.nc") -> None:
+        """
+        Save trace to path as a netcdf file
+
+        Parameters
+        ----------
+        path : str (optional)
+            Path to trace for model. Defaults to trace.nc in
+            the cwd
+        """
+
+        # Assert model is fit with new util fn
+        assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to saving"
+
+        # Save to path
+        _ = self.trace_.to_netcdf(path)
+
 
 class IndependentPoisson(_GenericModel):
     """
@@ -292,7 +321,7 @@ class IndependentPoisson(_GenericModel):
     student t distributions instead of normals
     """
 
-    def __init__(self, season : scrape.Season) -> None:
+    def __init__(self, season : scrape.Season, path : str=None) -> None:
         """
         Season object initialization function that pulls data for the given year
         from https://www.pro-football-reference.com/years/{year}/games.htm and
@@ -303,6 +332,8 @@ class IndependentPoisson(_GenericModel):
         self : self
         season : turf.scrape.Season
             Initialized season data that contains data required for inference
+        path : str (optional)
+            Path to pre-computed trace. Defaults to None, aka, ya need to sample the model
 
         Returns
         -------
@@ -311,7 +342,7 @@ class IndependentPoisson(_GenericModel):
         """
 
         # Init _GenericModel super (builds model and does everything else)
-        super().__init__(season)
+        super().__init__(season=season, path=path)
 
 
     def build_model(self) -> None:
@@ -345,19 +376,20 @@ class IndependentPoisson(_GenericModel):
             ### Initialize standard hierarchical model parameters
 
             # Home effect and typical score intercept term
-            home = pm.Normal('home', mu=0.0, sigma=10)
-            intercept = pm.Normal('intercept', mu=0.0, sigma=10)
+            home = pm.Normal('home', mu=0.0, sigma=1)
+            intercept = pm.Normal('intercept', mu=3.0, sigma=1)
 
             # Hyperpriors on attack and defense strength standard deviations
             # No need for mean prior due to "sum-to-zero" constraint
-            sigma = pm.HalfCauchy("sigma", beta=5)
+            sigma_att = pm.Gamma("sigma_att", alpha=2, beta=0.1)
+            sigma_def = pm.Gamma("sigma_def", alpha=2, beta=0.1)
 
             # Prior for nu
             nu = pm.Gamma("nu", alpha=2, beta=0.1)
 
             # Attacking, defensive strength for each team
-            atts_star = pm.StudentT("atts_star", nu=nu, mu=0, sigma=sigma, dims="teams")
-            defs_star = pm.StudentT("defs_star", nu=nu, mu=0, sigma=sigma, dims="teams")
+            atts_star = pm.StudentT("atts_star", nu=nu, mu=0, sigma=sigma_att, dims="teams")
+            defs_star = pm.StudentT("defs_star", nu=nu, mu=0, sigma=sigma_def, dims="teams")
 
             # Impose "sum-to-zero" constraint
             atts = pm.Deterministic('atts', atts_star - pt.mean(atts_star), dims="teams")
@@ -475,11 +507,11 @@ class CorrelatedPoisson(IndependentPoisson):
     """
     NFL Hierarchical generalized linear Poisson model similar to the model disccused
     https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf but with correlated 
-    log attacking and defensive strength
+    log attacking and defensive strength via a multi-variate student t's
 
     """
 
-    def __init__(self, season : scrape.Season) -> None:
+    def __init__(self, season : scrape.Season, path : str=None) -> None:
         """
         Season object initialization function that pulls data for the given year
         from https://www.pro-football-reference.com/years/{year}/games.htm and
@@ -490,6 +522,8 @@ class CorrelatedPoisson(IndependentPoisson):
         self : self
         season : turf.scrape.Season
             Initialized season data that contains data required for inference
+        path : str (optional)
+            Path to pre-computed trace. Defaults to None, aka, ya need to sample the model
 
         Returns
         -------
@@ -498,7 +532,7 @@ class CorrelatedPoisson(IndependentPoisson):
         """
 
         # Init StandardModel super (builds model and does everything else)
-        super().__init__(season)
+        super().__init__(season=season, path=path)
 
 
     def build_model(self) -> None:
@@ -532,8 +566,8 @@ class CorrelatedPoisson(IndependentPoisson):
             ### Initialize hierarchical model parameters
 
             # Home effect and typical score intercept term
-            home = pm.Normal('home', mu=0.0, sigma=10)
-            intercept = pm.Normal('intercept', mu=0.0, sigma=10)
+            home = pm.Normal('home', mu=0.0, sigma=1)
+            intercept = pm.Normal('intercept', mu=3.0, sigma=1)
 
             # Prior for nu
             nu = pm.Gamma("nu", alpha=2, beta=0.1)
@@ -546,7 +580,6 @@ class CorrelatedPoisson(IndependentPoisson):
                                                  compute_corr=True, store_in_trace=True)
             
             # Attacking, defensive strength for each team modeled as multivariate normal
-            #atts_defs_star = pm.MvNormal('atts_defs_star', mu=0, chol=chol, dims=("teams", "att_def"))
             atts_defs_star = pm.MvStudentT('atts_defs_star', nu=nu, mu=0, chol=chol, dims=("teams", "att_def"))
 
             # Impose "sum-to-zero" constraint
@@ -566,3 +599,103 @@ class CorrelatedPoisson(IndependentPoisson):
             # Assume a Poisson likelihood for (correlated in log theta space) home and away points
             pts = pm.Poisson('pts', mu=theta,
                              observed=obs_pts, dims=("games", "att_def"))
+
+
+class IndependentNegativeBinomial(IndependentPoisson):
+    """
+    NFL Hierarchical generalized linear Poisson model similar to the model disccused
+    https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf with the HurdlePoisson
+    likelihood
+
+    """
+
+    def __init__(self, season : scrape.Season, path : str=None) -> None:
+        """
+        Season object initialization function that pulls data for the given year
+        from https://www.pro-football-reference.com/years/{year}/games.htm and
+        automatically processes the data to compute the schedule, games played, etc
+
+        Parameters
+        ----------
+        self : self
+        season : turf.scrape.Season
+            Initialized season data that contains data required for inference
+        path : str (optional)
+            Path to pre-computed trace. Defaults to None, aka, ya need to sample the model
+
+        Returns
+        -------
+        None
+
+        """
+
+        # Init StandardModel super (builds model and does everything else)
+        super().__init__(season=season, path=path)
+
+
+    def build_model(self) -> None:
+        """
+        Build pymc-based Sandard model based the initial paper from
+        https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
+        
+        Parameters
+        ----------
+        self
+
+        Returns
+        -------
+        None
+        """
+
+        # Build pymc model
+        with pm.Model(coords=self._coords) as self.model:
+
+            # Constant, observed data
+            home_team = pm.Data("home_team",
+                                self._played_home_idx,
+                                dims="games", mutable=False)
+            away_team = pm.Data("away_team",
+                                self._played_away_idx,
+                                dims="games", mutable=False)
+            obs_pts = pm.Data("obs_pts",
+                              self.season.played_df[["home_pts", "away_pts"]],
+                              dims=("games", "att_def"), mutable=False)
+
+            ### Initialize standard hierarchical model parameters
+
+            # Home effect and typical score intercept term
+            home = pm.Normal('home', mu=0.0, sigma=1)
+            intercept = pm.Normal('intercept', mu=3.0, sigma=1)
+
+            # Hyperpriors on attack and defense strength standard deviations
+            # No need for mean prior due to "sum-to-zero" constraint
+            sigma_att = pm.Gamma("sigma_att", alpha=2, beta=0.1)
+            sigma_def = pm.Gamma("sigma_def", alpha=2, beta=0.1)
+
+            # Prior for nu
+            nu = pm.Gamma("nu", alpha=2, beta=0.1)
+
+            # Prior for alpha
+            alpha_base = pm.Exponential("alpha_base", 2)
+            alpha = pm.Deterministic("alpha", pm.math.sqr(1 / alpha_base))
+
+            # Attacking, defensive strength for each team
+            atts_star = pm.StudentT("atts_star", nu=nu, mu=0, sigma=sigma_att, dims="teams")
+            defs_star = pm.StudentT("defs_star", nu=nu, mu=0, sigma=sigma_def, dims="teams")
+
+            # Impose "sum-to-zero" constraint
+            atts = pm.Deterministic('atts', atts_star - pt.mean(atts_star), dims="teams")
+            defs = pm.Deterministic('defs', defs_star - pt.mean(defs_star), dims="teams")
+
+            # Compute theta for the home and away teams (like expected score)
+            home_theta = pm.math.exp(intercept + home + atts[home_team] + defs[away_team])
+            away_theta = pm.math.exp(intercept + atts[away_team] + defs[home_team])
+            theta = pt.stack([home_theta, away_theta]).T
+
+            # Compute home and away point likelihood under log-linear model
+            # Recall - model points as a draws from
+            # conditionally-independent Poisson distribution: y | theta ~ Poisson(theta)
+
+            # Assume a Negative Binomial likelihood for (uncorrelated) home and away points
+            pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha*theta,
+                                      observed=obs_pts, dims=("games", "att_def"))

@@ -67,7 +67,8 @@ setup(name = 'turf',
                           'mechanicalsoup',
                           'beautifulsoup4',
                           'lxml',
-                          'seaborn'
+                          'seaborn',
+                          'xarray'
                           ],
       include_package_data = True,
       zip_safe = False)
