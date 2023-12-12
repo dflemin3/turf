@@ -670,9 +670,9 @@ class IndependentNegativeBinomial(IndependentPoisson):
             sigma_att = pm.Gamma("sigma_att", alpha=2, beta=0.1)
             sigma_def = pm.Gamma("sigma_def", alpha=2, beta=0.1)
 
-            # Prior for alpha
-            alpha_base = pm.Exponential("alpha_base", 2)
-            alpha = pm.Deterministic("alpha", pm.math.sqr(1 / alpha_base))
+            # Prior for alphas (home and away)
+            alpha_base = pm.Exponential("alpha_base", 2, dims="att_def")
+            alpha = pm.Deterministic("alpha", pm.math.sqr(1 / alpha_base), dims="att_def")
 
             # Attacking, defensive strength for each team
             atts_star_offset = pm.Normal("atts_star_offset", mu=0, sigma=1, dims="teams")
@@ -747,7 +747,7 @@ class IndependentNegativeBinomial(IndependentPoisson):
         # Holders
         home = np.zeros(len(inds))
         intercept = np.zeros(len(inds))
-        alpha = np.zeros(len(inds))
+        alpha = np.zeros((len(inds),2))
         home_att = np.zeros(len(inds))
         home_def = np.zeros(len(inds))
         away_att = np.zeros(len(inds))
@@ -762,7 +762,7 @@ class IndependentNegativeBinomial(IndependentPoisson):
             # Extract parameters
             home[jj] = float(self.trace_.posterior.home.loc[cc,ii])
             intercept[jj] = float(self.trace_.posterior.intercept.loc[cc,ii])
-            alpha[jj] = float(self.trace_.posterior.alpha.loc[cc,ii])
+            alpha[jj,:] = self.trace_.posterior.alpha.loc[cc,ii]
             
             # Extract posterior parameters for team, but allow median team to play
             if home_team == 'median':
@@ -783,8 +783,8 @@ class IndependentNegativeBinomial(IndependentPoisson):
         # conditionally-independent Negative Binomial distribution: y | theta ~ NB(theta)
         home_theta = np.exp(home + intercept + home_att + away_def)
         away_theta = np.exp(intercept + away_att + home_def)
-        home_pts = rng.negative_binomial(alpha, alpha/(alpha+home_theta))
-        away_pts = rng.negative_binomial(alpha, alpha/(alpha+away_theta))
+        home_pts = rng.negative_binomial(alpha[:,0], alpha[:,0]/(alpha[:,0]+home_theta))
+        away_pts = rng.negative_binomial(alpha[:,1], alpha[:,1]/(alpha[:,1]+away_theta))
 
         # Evaluate and process game results to more standard win, loss, etc nomenclature
         outcomes = np.asarray([[ut._outcome(hpt, apt)] for hpt, apt in zip(home_pts, away_pts)]).squeeze()
