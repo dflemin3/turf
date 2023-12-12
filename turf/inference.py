@@ -377,19 +377,19 @@ class IndependentPoisson(_GenericModel):
 
             # Home effect and typical score intercept term
             home = pm.Normal('home', mu=0.0, sigma=1)
-            intercept = pm.Normal('intercept', mu=3.0, sigma=1)
+            intercept = pm.Normal('intercept', mu=0.0, sigma=1)
 
             # Hyperpriors on attack and defense strength standard deviations
-            # No need for mean prior due to "sum-to-zero" constraint
+            mu_att = pm.Normal("mu_att", mu=0, sigma=1)
+            mu_def = pm.Normal("mu_def", mu=0, sigma=1)
             sigma_att = pm.Gamma("sigma_att", alpha=2, beta=0.1)
             sigma_def = pm.Gamma("sigma_def", alpha=2, beta=0.1)
 
-            # Prior for nu
-            nu = pm.Gamma("nu", alpha=2, beta=0.1)
-
             # Attacking, defensive strength for each team
-            atts_star = pm.StudentT("atts_star", nu=nu, mu=0, sigma=sigma_att, dims="teams")
-            defs_star = pm.StudentT("defs_star", nu=nu, mu=0, sigma=sigma_def, dims="teams")
+            atts_star_offset = pm.Normal("atts_star_offset", mu=0, sigma=1, dims="teams")
+            atts_star = pm.Deterministic("atts_star", mu_att + atts_star_offset * sigma_att, dims="teams")
+            defs_star_offset = pm.Normal("defs_star_offset", mu=0, sigma=1, dims="teams")
+            defs_star = pm.Deterministic("defs_star", mu_def + defs_star_offset * sigma_def, dims="teams")
 
             # Impose "sum-to-zero" constraint
             atts = pm.Deterministic('atts', atts_star - pt.mean(atts_star), dims="teams")
@@ -567,10 +567,7 @@ class CorrelatedPoisson(IndependentPoisson):
 
             # Home effect and typical score intercept term
             home = pm.Normal('home', mu=0.0, sigma=1)
-            intercept = pm.Normal('intercept', mu=3.0, sigma=1)
-
-            # Prior for nu
-            nu = pm.Gamma("nu", alpha=2, beta=0.1)
+            intercept = pm.Normal('intercept', mu=0.0, sigma=1)
 
             # Prior standard deviation for att and def terms
             lkj_sd = pm.HalfNormal.dist(shape=2)
@@ -580,7 +577,7 @@ class CorrelatedPoisson(IndependentPoisson):
                                                  compute_corr=True, store_in_trace=True)
             
             # Attacking, defensive strength for each team modeled as multivariate normal
-            atts_defs_star = pm.MvStudentT('atts_defs_star', nu=nu, mu=0, chol=chol, dims=("teams", "att_def"))
+            atts_defs_star = pm.MvNormal('atts_defs_star', mu=0, chol=chol, dims=("teams", "att_def"))
 
             # Impose "sum-to-zero" constraint
             atts = pm.Deterministic('atts', atts_defs_star[:,0] - pt.mean(atts_defs_star[:,0]), dims="teams")
@@ -665,23 +662,23 @@ class IndependentNegativeBinomial(IndependentPoisson):
 
             # Home effect and typical score intercept term
             home = pm.Normal('home', mu=0.0, sigma=1)
-            intercept = pm.Normal('intercept', mu=3.0, sigma=1)
+            intercept = pm.Normal('intercept', mu=0.0, sigma=1)
 
-            # Hyperpriors on attack and defense strength standard deviations
-            # No need for mean prior due to "sum-to-zero" constraint
+            # Hyperpriors on attack and defense strength means and standard deviations
+            mu_att = pm.Normal("mu_att", mu=0, sigma=1)
+            mu_def = pm.Normal("mu_def", mu=0, sigma=1)
             sigma_att = pm.Gamma("sigma_att", alpha=2, beta=0.1)
             sigma_def = pm.Gamma("sigma_def", alpha=2, beta=0.1)
-
-            # Prior for nu
-            nu = pm.Gamma("nu", alpha=2, beta=0.1)
 
             # Prior for alpha
             alpha_base = pm.Exponential("alpha_base", 2)
             alpha = pm.Deterministic("alpha", pm.math.sqr(1 / alpha_base))
 
             # Attacking, defensive strength for each team
-            atts_star = pm.StudentT("atts_star", nu=nu, mu=0, sigma=sigma_att, dims="teams")
-            defs_star = pm.StudentT("defs_star", nu=nu, mu=0, sigma=sigma_def, dims="teams")
+            atts_star_offset = pm.Normal("atts_star_offset", mu=0, sigma=1, dims="teams")
+            atts_star = pm.Deterministic("atts_star", mu_att + atts_star_offset * sigma_att, dims="teams")
+            defs_star_offset = pm.Normal("defs_star_offset", mu=0, sigma=1, dims="teams")
+            defs_star = pm.Deterministic("defs_star", mu_def + defs_star_offset * sigma_def, dims="teams")
 
             # Impose "sum-to-zero" constraint
             atts = pm.Deterministic('atts', atts_star - pt.mean(atts_star), dims="teams")
@@ -694,8 +691,8 @@ class IndependentNegativeBinomial(IndependentPoisson):
 
             # Compute home and away point likelihood under log-linear model
             # Recall - model points as a draws from
-            # conditionally-independent Poisson distribution: y | theta ~ Poisson(theta)
+            # conditionally-independent NegativeBinomial distribution: y | theta ~ NB(theta)
 
             # Assume a Negative Binomial likelihood for (uncorrelated) home and away points
-            pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha*theta,
+            pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha,
                                       observed=obs_pts, dims=("games", "att_def"))
