@@ -696,3 +696,98 @@ class IndependentNegativeBinomial(IndependentPoisson):
             # Assume a Negative Binomial likelihood for (uncorrelated) home and away points
             pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha,
                                       observed=obs_pts, dims=("games", "att_def"))
+
+    
+    def simulate_game(self, home_team : str,
+                      away_team : str, n : int=100, seed : int=90,
+                      rng : np.random.Generator=None) -> Union[int, int, bool, bool]:
+        """
+        Simulate an NFL game where away_team plays at home_team and trace
+        contains draws from the posterior distribution for model parameters,
+        e.g. atts and defs.
+
+        Parameters
+        ----------
+        home_team : str
+            Name of the home team, like STL. Can also be "median" where parameters
+            are 0 for the median team.
+        away_team : str
+            Name of the away team, like CHI. Can also be "median" where parameters
+            are 0 for the median team.
+        n : int (optional)
+            Number of games to simulate. Defaults to 100
+        seed : int (optional)
+            RNG seed. Defaults to 90
+        rng : numpy rng (optional)
+            Defaults to None and is initialized internally
+
+        Returns
+        -------
+        home_pts : int
+            number of points scored by the home team
+        away_pts : int
+            number of points scored by the away team
+        home_win : bool
+            whether or not the hometeam won
+        tie : str
+            indicates if the game finished in a tie or not
+        """
+
+        # Init rng
+        if rng is None:
+            rng = np.random.default_rng(seed)
+
+        # Assert model is fit with new util fn
+        assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to simulations"
+
+        # Draw random samples with replacement
+        inds = rng.choice(self.trace_.posterior.home.shape[-1], size=n, replace=True, shuffle=True)
+        chain = rng.integers(self.n_chains_, size=n)
+
+        # Holders
+        home = np.zeros(len(inds))
+        intercept = np.zeros(len(inds))
+        alpha = np.zeros(len(inds))
+        home_att = np.zeros(len(inds))
+        home_def = np.zeros(len(inds))
+        away_att = np.zeros(len(inds))
+        away_def = np.zeros(len(inds))
+
+        # Draw posterior sampls
+        for jj, vals in enumerate(zip(inds,chain)):
+            
+            # Extract indices
+            ii, cc = vals
+
+            # Extract parameters
+            home[jj] = float(self.trace_.posterior.home.loc[cc,ii])
+            intercept[jj] = float(self.trace_.posterior.intercept.loc[cc,ii])
+            alpha[jj] = float(self.trace_.posterior.alpha.loc[cc,ii])
+            
+            # Extract posterior parameters for team, but allow median team to play
+            if home_team == 'median':
+                home_att[jj] = 0.0
+                home_def[jj] = 0.0
+            else:
+                home_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,home_team])
+                home_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,home_team])
+            if away_team == 'median':
+                away_att[jj] = 0.0
+                away_def[jj] = 0.0
+            else:
+                away_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,away_team])
+                away_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,away_team])
+
+        # Compute home and away goals using log-linear model, draws for model parameters
+        # from posterior distribution. Recall - model points as a draws from
+        # conditionally-independent Negative Binomial distribution: y | theta ~ NB(theta)
+        home_theta = np.exp(home + intercept + home_att + away_def)
+        away_theta = np.exp(intercept + away_att + home_def)
+        home_pts = rng.negative_binomial(alpha, alpha/(alpha+home_theta))
+        away_pts = rng.negative_binomial(alpha, alpha/(alpha+away_theta))
+
+        # Evaluate and process game results to more standard win, loss, etc nomenclature
+        outcomes = np.asarray([[ut._outcome(hpt, apt)] for hpt, apt in zip(home_pts, away_pts)]).squeeze()
+        home_win, tie = outcomes[:,0], outcomes[:,1]
+
+        return home_pts, away_pts, home_win, tie
