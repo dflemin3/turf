@@ -20,7 +20,8 @@ from . import scrape
 from . import utils as ut
 
 
-__all__ = ["IndependentPoisson", "CorrelatedPoisson", "IndependentNegativeBinomial"]
+__all__ = ["IndependentPoisson", "CorrelatedPoisson", "IndependentNegativeBinomial",
+           "IndependentNegativeBinomialMixture"]
 
 
 ################################################################################
@@ -323,9 +324,8 @@ class IndependentPoisson(_GenericModel):
 
     def __init__(self, season : scrape.Season, path : str=None) -> None:
         """
-        Season object initialization function that pulls data for the given year
-        from https://www.pro-football-reference.com/years/{year}/games.htm and
-        automatically processes the data to compute the schedule, games played, etc
+        Model object initialization function that takes in and processes
+        Season data for use with inference
 
         Parameters
         ----------
@@ -513,9 +513,8 @@ class CorrelatedPoisson(IndependentPoisson):
 
     def __init__(self, season : scrape.Season, path : str=None) -> None:
         """
-        Season object initialization function that pulls data for the given year
-        from https://www.pro-football-reference.com/years/{year}/games.htm and
-        automatically processes the data to compute the schedule, games played, etc
+        Model object initialization function that takes in and processes
+        Season data for use with inference
 
         Parameters
         ----------
@@ -601,16 +600,15 @@ class CorrelatedPoisson(IndependentPoisson):
 class IndependentNegativeBinomial(IndependentPoisson):
     """
     NFL Hierarchical generalized linear Poisson model similar to the model disccused
-    https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf with the HurdlePoisson
+    https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf with the NegativeBinomial
     likelihood
 
     """
 
     def __init__(self, season : scrape.Season, path : str=None) -> None:
         """
-        Season object initialization function that pulls data for the given year
-        from https://www.pro-football-reference.com/years/{year}/games.htm and
-        automatically processes the data to compute the schedule, games played, etc
+        Model object initialization function that takes in and processes
+        Season data for use with inference
 
         Parameters
         ----------
@@ -791,3 +789,137 @@ class IndependentNegativeBinomial(IndependentPoisson):
         home_win, tie = outcomes[:,0], outcomes[:,1]
 
         return home_pts, away_pts, home_win, tie
+
+    
+class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
+    """
+    NFL Hierarchical generalized linear Negative Binomial model similar to the model disscused
+    https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
+    assuming log attacking and defensive strengths are uncorrelated but using 
+    normals for bad, average, and good teams with a Dirichlet prior on group membership
+    """
+
+    def __init__(self, season : scrape.Season, path : str=None) -> None:
+        """
+        Model object initialization function that takes in and processes
+        Season data for use with inference
+
+        Parameters
+        ----------
+        self : self
+        season : turf.scrape.Season
+            Initialized season data that contains data required for inference
+        path : str (optional)
+            Path to pre-computed trace. Defaults to None, aka, ya need to sample the model
+
+        Returns
+        -------
+        None
+
+        """
+
+        # Init _GenericModel super (builds model and does everything else)
+        super().__init__(season=season, path=path)
+
+
+    def build_model(self) -> None:
+        """
+        Build pymc-based model based the initial paper from
+        https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf, but using
+        a Negative Binomial link function and a Dirichlet-prior mixture of
+        normals
+
+        Parameters
+        ----------
+        self
+
+        Returns
+        -------
+        None
+        """
+
+        # Build pymc model
+        with pm.Model(coords=self._coords) as self.model:
+
+            # Constant, observed data
+            home_team = pm.Data("home_team",
+                                self._played_home_idx,
+                                dims="games", mutable=False)
+            away_team = pm.Data("away_team",
+                                self._played_away_idx,
+                                dims="games", mutable=False)
+            obs_pts = pm.Data("obs_pts",
+                              self.season.played_df[["home_pts", "away_pts"]],
+                              dims=("games", "att_def"), mutable=False)
+
+            ### Initialize standard hierarchical model parameters
+
+            # Home effect, typical score intercept term
+            home = pm.Normal('home', mu=0.0, sigma=1)
+            intercept = pm.Normal('intercept', mu=0.0, sigma=1)
+            
+            # Attacking mixture weights
+            att_weights_unscaled = pm.Dirichlet('att_weights_unscaled', 
+                                                a=np.ones((3, len(self._coords['teams']))),
+                                                dims=("groups", "teams"))
+            att_weights = pm.Deterministic('att_weights', att_weights_unscaled / pm.math.sum(att_weights_unscaled, axis=0))
+            
+            # Defense mixture weights
+            def_weights_unscaled = pm.Dirichlet('def_weights_unscaled',
+                                                a=np.ones((3, len(self._coords['teams']))),
+                                                dims=("groups", "teams"))
+            def_weights = pm.Deterministic('def_weights', def_weights_unscaled / pm.math.sum(def_weights_unscaled, axis=0))
+
+            # Hyperpriors on attack and defense strength standard deviations
+            mu_att = pm.Normal("mu_att", mu=[-1, 0, 1], sigma=1, dims="groups")
+            mu_def = pm.Normal("mu_def", mu=[1, 0, -1], sigma=1, dims="groups")
+            sigma_att = pm.Gamma("sigma_att", alpha=2, beta=0.1, dims="groups")
+            sigma_def = pm.Gamma("sigma_def", alpha=2, beta=0.1, dims="groups")
+
+            # Prior for alphas (home and away)
+            alpha_base = pm.Exponential("alpha_base", 2, dims="att_def")
+            alpha = pm.Deterministic("alpha", pm.math.sqr(1 / alpha_base), dims="att_def")
+
+            # Attacking strength for each team by group
+            atts_star_offset = pm.Normal("att_star_offset", mu=0, sigma=1, dims=("groups", "teams"))
+            atts_star_bad = pm.Deterministic("atts_star_bad", mu_att[0] + atts_star_offset[0,:] * sigma_att[0],
+                                             dims="teams")
+            atts_star_avg = pm.Deterministic("atts_star_avg", mu_att[1] + atts_star_offset[1,:] * sigma_att[1],
+                                             dims="teams")
+            atts_star_good = pm.Deterministic("atts_star_good", mu_att[2] + atts_star_offset[2,:] * sigma_att[2],
+                                              dims="teams")
+            
+            # Defensive strength for each team by group
+            defs_star_offset = pm.Normal("def_star_offset", mu=0, sigma=1, dims=("groups", "teams"))
+            defs_star_bad = pm.Deterministic("defs_star_bad", mu_def[0] + defs_star_offset[0,:] * sigma_def[0],
+                                             dims="teams")
+            defs_star_avg = pm.Deterministic("defs_star_avg", mu_def[1] + defs_star_offset[1,:] * sigma_def[1],
+                                             dims="teams")
+            defs_star_good = pm.Deterministic("defs_star_good", mu_def[2] + defs_star_offset[2,:] * sigma_def[2],
+                                              dims="teams")
+
+            # Atts, defs and mixture of bad, avg, and good components
+            atts_star = pm.Deterministic("atts_star", att_weights[0,:] * atts_star_bad + 
+                                         att_weights[1,:] * atts_star_avg + 
+                                         att_weights[2,:] * atts_star_good, dims="teams")
+            defs_star = pm.Deterministic("defs_star", def_weights[0,:] * defs_star_bad + 
+                                         def_weights[1,:] * defs_star_avg + 
+                                         def_weights[2,:] * defs_star_good, dims="teams")
+
+            # Impose "sum-to-zero" constraint
+            atts = pm.Deterministic('atts', atts_star - pt.mean(atts_star), dims="teams")
+            defs = pm.Deterministic('defs', defs_star - pt.mean(defs_star), dims="teams")
+
+            # Compute theta for the home and away teams (like expected score)
+            home_log_theta = intercept + home + atts[home_team] + defs[away_team]
+            away_log_theta = intercept + atts[away_team] + defs[home_team]
+            log_theta = pt.stack([home_log_theta, away_log_theta]).T
+            theta = pm.math.exp(log_theta)
+
+            # Compute home and away point likelihood under log-linear model
+            # Recall - model points as a draws from
+            # conditionally-independent NegativeBinomial distribution: y | theta ~ NB(theta)
+
+            # Assume a Negative Binomial likelihood for (uncorrelated) home and away points
+            pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha,
+                                      observed=obs_pts, dims=("games", "att_def"))
