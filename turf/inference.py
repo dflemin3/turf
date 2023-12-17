@@ -33,10 +33,10 @@ __all__ = ["IndependentPoisson", "CorrelatedPoisson", "IndependentNegativeBinomi
 
 class _GenericModel(object):
     """
-    Abstract class for pymc-based (hierarchical) models of NFL games
+    Abstract class for pymc-based (hierarchical) models of games
     """
 
-    def __init__(self, season : scrape.Season, path : str=None) -> None:
+    def __init__(self, season : scrape._GenericSeason, path : str=None) -> None:
         """
         Abstract model class _GenericModel object initialization function that
         initializes and defines the typical run_inference sampling function
@@ -44,7 +44,7 @@ class _GenericModel(object):
         Parameters
         ----------
         self : self
-        season : turf.scrape.Season
+        season : turf.scrape._GenericSeason
             Initialized season data that contains data required for inference
         path : str (optional)
             Path to pre-computed trace. Defaults to None, aka, ya need to sample the model
@@ -75,7 +75,7 @@ class _GenericModel(object):
     
     def build_coords(self) -> None:
         """
-        Build coords for pymc data management from NFL season results
+        Build coords for pymc data management from season results
 
         Parameters
         ----------
@@ -123,7 +123,7 @@ class _GenericModel(object):
                        away_team : str, n : int=100, seed : int=None,
                        rng : np.random.Generator=None) -> None:
         """
-        Simulate an NFL game where away_team plays at home_team and trace
+        Simulate an game where away_team plays at home_team and trace
         contains draws from the posterior distribution for model parameters,
         e.g. atts and defs.
 
@@ -216,7 +216,7 @@ class _GenericModel(object):
 
     def sos(self, n : int=100, mode='full') -> Union[np.ndarray, np.ndarray]:
         """
-        Simulate NFL results to estimate a team's strength of schedule 
+        Simulate season results to estimate a team's strength of schedule 
         as the win percentage of the median team playing the same schedule.
 
         Parameters
@@ -316,13 +316,13 @@ class _GenericModel(object):
 
 class IndependentPoisson(_GenericModel):
     """
-    NFL Hierarchical generalized linear Poisson model similar to the model disscused
+    Hierarchical generalized linear Poisson model similar to the model disscused
     https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
     but assuming log attacking and defensive strengths are uncorrelated but using 
     student t distributions instead of normals
     """
 
-    def __init__(self, season : scrape.Season, path : str=None) -> None:
+    def __init__(self, season : scrape._GenericSeason, path : str=None) -> None:
         """
         Model object initialization function that takes in and processes
         Season data for use with inference
@@ -413,7 +413,7 @@ class IndependentPoisson(_GenericModel):
                       away_team : str, n : int=100, seed : int=90,
                       rng : np.random.Generator=None) -> Union[int, int, bool, bool]:
         """
-        Simulate an NFL game where away_team plays at home_team and trace
+        Simulate a game where away_team plays at home_team and trace
         contains draws from the posterior distribution for model parameters,
         e.g. atts and defs.
 
@@ -505,13 +505,13 @@ class IndependentPoisson(_GenericModel):
 
 class CorrelatedPoisson(IndependentPoisson):
     """
-    NFL Hierarchical generalized linear Poisson model similar to the model disccused
+    Hierarchical generalized linear Poisson model similar to the model disccused
     https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf but with correlated 
     log attacking and defensive strength via a multi-variate student t's
 
     """
 
-    def __init__(self, season : scrape.Season, path : str=None) -> None:
+    def __init__(self, season : scrape._GenericSeason, path : str=None) -> None:
         """
         Model object initialization function that takes in and processes
         Season data for use with inference
@@ -599,13 +599,13 @@ class CorrelatedPoisson(IndependentPoisson):
 
 class IndependentNegativeBinomial(IndependentPoisson):
     """
-    NFL Hierarchical generalized linear Poisson model similar to the model disccused
+    Hierarchical generalized linear Poisson model similar to the model disccused
     https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf with the NegativeBinomial
     likelihood
 
     """
 
-    def __init__(self, season : scrape.Season, path : str=None) -> None:
+    def __init__(self, season : scrape._GenericSeason, path : str=None) -> None:
         """
         Model object initialization function that takes in and processes
         Season data for use with inference
@@ -613,7 +613,7 @@ class IndependentNegativeBinomial(IndependentPoisson):
         Parameters
         ----------
         self : self
-        season : turf.scrape.Season
+        season : turf.scrape._GenericSeason
             Initialized season data that contains data required for inference
         path : str (optional)
             Path to pre-computed trace. Defaults to None, aka, ya need to sample the model
@@ -700,7 +700,7 @@ class IndependentNegativeBinomial(IndependentPoisson):
                       away_team : str, n : int=100, seed : int=90,
                       rng : np.random.Generator=None) -> Union[int, int, bool, bool]:
         """
-        Simulate an NFL game where away_team plays at home_team and trace
+        Simulate an game where away_team plays at home_team and trace
         contains draws from the posterior distribution for model parameters,
         e.g. atts and defs.
 
@@ -793,13 +793,13 @@ class IndependentNegativeBinomial(IndependentPoisson):
     
 class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
     """
-    NFL Hierarchical generalized linear Negative Binomial model similar to the model disscused
+    Hierarchical generalized linear Negative Binomial model similar to the model disscused
     https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf 
     assuming log attacking and defensive strengths are uncorrelated but using 
     normals for bad, average, and good teams with a Dirichlet prior on group membership
     """
 
-    def __init__(self, season : scrape.Season, path : str=None) -> None:
+    def __init__(self, season : scrape._GenericSeason, path : str=None) -> None:
         """
         Model object initialization function that takes in and processes
         Season data for use with inference
@@ -807,7 +807,7 @@ class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
         Parameters
         ----------
         self : self
-        season : turf.scrape.Season
+        season : turf.scrape._GenericSeason
             Initialized season data that contains data required for inference
         path : str (optional)
             Path to pre-computed trace. Defaults to None, aka, ya need to sample the model
