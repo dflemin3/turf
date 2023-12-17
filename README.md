@@ -3,7 +3,9 @@
 Overview
 ========
 
-`turf` is a Python library that performs Bayesian hierarchical inference and simulation of NFL games
+`turf` is a Python library that performs Bayesian hierarchical inference and simulation of
+National Football League (NFL) and Nation Hockey League (NHL) games. These models are inspired
+by the framework introduced in [Baio and Blangiardo (2010)](https://doi.org/10.1080/02664760802684177).
 
 Runs for Python 3.9+
 
@@ -80,7 +82,9 @@ Analyses
 ========
 
 Check out the notebook that demonstrate how to characterize teams' offensive and defensive strengths and simulate games:
-- [Inference and simulation of NFL games](https://github.com/dflemin3/turf/blob/main/examples/nfl_example.ipynb)
+- [Inference and simulation of NFL games](https://github.com/dflemin3/turf/blob/main/examples/nfl.ipynb)
+- [Inference and simulation of NHL games](https://github.com/dflemin3/turf/blob/main/examples/nhl.ipynb)
 
 Check out the following notebook that demonstrates how to calculate a team's strength of schedule (SoS):
 - [NFL SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/nfl_sos.ipynb)
+- [NHL SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/nhl_sos.ipynb)
