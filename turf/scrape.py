@@ -91,7 +91,7 @@ class NFLSeason(_GenericSeason):
     and results
     """
 
-    def __init__(self, year : int=2022, week : int=None, path : str=None) -> None: 
+    def __init__(self, year : int=2022, path : str=None) -> None: 
         """
         Season object initialization function that pulls data for the given year
         from https://www.pro-football-reference.com/years/{year}/games.htm and
@@ -103,12 +103,6 @@ class NFLSeason(_GenericSeason):
         year : int (optional)
             NFL season such that year corresponds to the year-year+1 NFL season.
             Defaults to 2022 for the 2022-2023 NFL season
-        week : int (optional)
-            If week is set, set all scores >= week to NaN as if games
-            have not been played. This will always drop playoff games.
-            Week is constrained to 0 < week <= 18. Defaults to None,
-            so games with NaN scores have not been played as of the morning
-            the game was scraped (aka normal expected results).
         path : str (optional)
             Path to pre-cached data to build Season object. If this is provided,
             this file is loaded and used instead of scraping the data.
@@ -117,37 +111,12 @@ class NFLSeason(_GenericSeason):
         # Init _GenericModel super (builds model and does everything else)
         super().__init__(year=year, path=path)
 
-        # Cache week
-        self.week = week
-
-        # QC week
-        if self.week is not None:
-            err_msg = f"week must be an int constrained to 0 < week <= 18. self.week = {self.week}"
-            assert isinstance(self.week, int), err_msg
-            assert 0 < self.week <= 18, err_msg
-
        # Load data from local path
         if self.path is not None:
             self.raw_season_df = pd.read_csv(self.path)
         # Pull raw season data from pro-football-reference.com
         else:
             self.raw_season_df = pull_nfl_full_season_games_raw(year=self.year)
-
-        # If self.week is set, QC and set all scores >= self.week to NaN as if games
-        # have not been played. This will always drop playoff games
-        if self.week is not None:
-            # First, drop all playoff games
-            self.raw_season_df = self.raw_season_df[~self.raw_season_df["Week"].isin(['WildCard',
-                                                                                      'Division',
-                                                                                      'ConfChamp',
-                                                                                      'SuperBowl'])].copy()
-
-            # Now temporarily convert Week dtype to int to filter by Week
-            self.raw_season_df["Week"] = self.raw_season_df["Week"].astype(int)
-
-            # Set home, away points for Week >= self.week to NaN
-            self.raw_season_df.loc[self.raw_season_df["Week"] >= self.week, "home_pts"] = np.nan
-            self.raw_season_df.loc[self.raw_season_df["Week"] >= self.week, "away_pts"] = np.nan
 
         # Convert Week column into string to accomodate playoffs as needed
         self.raw_season_df["Week"] = self.raw_season_df["Week"].astype(str)
