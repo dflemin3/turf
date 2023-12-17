@@ -82,7 +82,7 @@ class _GenericSeason(object):
         """
 
         # Cache raw season data as csv
-        self.raw_season_df.to_csv(self.path, index=False, header=True)
+        self.raw_season_df.to_csv(path, index=False, header=True)
 
 
 class NFLSeason(_GenericSeason):
