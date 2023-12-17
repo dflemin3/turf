@@ -23,7 +23,7 @@ __all__ = ["_nfl_name_conv", "_hex_color_nfl", "check_model_inference"]
 ################################################################################
 
 
-# Internal dictionary of NHL team names and abbreviations
+# Internal dictionary of NFL team names and abbreviations
 _nfl_name_conv = {'Tampa Bay Buccaneers' : 'TB',
                   'Atlanta Falcons' : 'ATL',
                   'Buffalo Bills' : 'BUF',
@@ -63,6 +63,45 @@ _nfl_name_conv = {'Tampa Bay Buccaneers' : 'TB',
                   'Minnesota Vikings' : 'MIN',
                   'San Francisco 49ers' : 'SF',
                   'Dallas Cowboys' : 'DAL'}
+
+
+# Internal dictionary of NHL team names and abbreviations
+_nhl_name_conv = {'Arizona Coyotes' : 'ARI',
+                   'Anaheim Ducks' : 'ANA',
+                   'Boston Bruins' : 'BOS',
+                   'Buffalo Sabres' : 'BUF',
+                   'Carolina Hurricanes' : 'CAR',
+                   'Columbus Blue Jackets' : 'CBJ',
+                   'Calgary Flames' : 'CGY',
+                   'Chicago Black Hawks' : 'CHI',
+                   'Chicago Blackhawks' : 'CHI',
+                   'Colorado Avalanche' : 'COL',
+                   'Dallas Stars' : 'DAL',
+                   'Detroit Red Wings' : 'DET',
+                   'Edmonton Oilers' : 'EDM',
+                   'Florida Panthers' : 'FLA',
+                   'Los Angeles Kings' : 'LAK',
+                   'Minnesota Wild' : 'MIN',
+                   'Montreal Canadiens' : 'MTL',
+                   'New Jersey Devils' : 'NJD',
+                   'Nashville Predators' : 'NSH',
+                   'New York Islanders' : 'NYI',
+                   'New York Rangers' : 'NYR',
+                   'Ottawa Senators' : 'OTT',
+                   'Philadelphia Flyers' : 'PHI',
+                   'Phoenix Coyotes' : 'PHX',
+                   'Pittsburgh Penguins' : 'PIT',
+                   'Seattle Kraken' : 'SEA',
+                   'San Jose Sharks' : 'SJS',
+                   'St. Louis Blues' : 'STL',
+                   'Saint Louis Blues' : 'STL',
+                   'Tampa Bay Lightning' : 'TBL',
+                   'Toronto Maple Leafs' : 'TOR',
+                   'Vancouver Canucks' : 'VAN',
+                   'Vegas Golden Knights' : 'VGK',
+                   'Las Vegas Golden Knights' : 'VGK',
+                   'Winnipeg Jets' : 'WPG',
+                   'Washington Capitals' : 'WSH'}
 
 
 _hex_color_nfl = {"BLT_0" : "#241773",
@@ -131,10 +170,11 @@ _hex_color_nfl = {"BLT_0" : "#241773",
                   "SEA_1" : "#69BE28"}
 
 
-def __home_away(x : pd.Series) -> str | int | str | int:
+def __nfl_home_away(x : pd.Series) -> str | int | str | int:
     """
     Internal utility function to determine which team is the home/away team
     from a raw pull_season df and create team and score mappings accordingly
+    for NFL games
     """
 
     # Winning team was away

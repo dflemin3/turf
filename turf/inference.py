@@ -121,7 +121,7 @@ class _GenericModel(object):
 
     def simulate_games(self, home_team : str,
                        away_team : str, n : int=100, seed : int=None,
-                       rng : np.random.Generator=None) -> None:
+                       rng : np.random.Generator=None, tie_breaker_pt : bool=False) -> None:
         """
         Simulate an game where away_team plays at home_team and trace
         contains draws from the posterior distribution for model parameters,
@@ -139,6 +139,9 @@ class _GenericModel(object):
             RNG seed. Defaults to 90
         rng : numpy rng (optional)
             Defaults to None and is initialized internally
+        tie_breaker_pt : bool (optional)
+            If the game is tied, pick random team with even probability 
+            to get 1 OT point. Defaults to False.
 
         Returns
         -------
@@ -411,7 +414,8 @@ class IndependentPoisson(_GenericModel):
 
     def simulate_game(self, home_team : str,
                       away_team : str, n : int=100, seed : int=90,
-                      rng : np.random.Generator=None) -> Union[int, int, bool, bool]:
+                      rng : np.random.Generator=None,
+                      tie_breaker_pt : bool=False) -> Union[int, int, bool, bool]:
         """
         Simulate a game where away_team plays at home_team and trace
         contains draws from the posterior distribution for model parameters,
@@ -431,6 +435,9 @@ class IndependentPoisson(_GenericModel):
             RNG seed. Defaults to 90
         rng : numpy rng (optional)
             Defaults to None and is initialized internally
+        tie_breaker_pt : bool (optional)
+            If the game is tied, pick random team with even probability 
+            to get 1 OT point. Defaults to False.
 
         Returns
         -------
@@ -499,7 +506,16 @@ class IndependentPoisson(_GenericModel):
         outcomes = np.asarray([[ut._outcome(hpt, apt)] for hpt, apt in zip(home_pts, away_pts)]).squeeze()
         home_win, tie = outcomes[:,0], outcomes[:,1]
 
-        return home_pts, away_pts, home_win, tie
+        # Assign tiebreaker point?
+        for ii in range(len(home_win)):
+            if tie[ii] and tie_breaker_pt:
+                hw = rng.integers(low=0, high=1, size=1)
+                if hw == 1:
+                    home_pts[ii] += 1
+                else:
+                    away_pts[ii] += 1
+
+            return home_pts, away_pts, home_win, tie
 
 
 
@@ -698,7 +714,8 @@ class IndependentNegativeBinomial(IndependentPoisson):
     
     def simulate_game(self, home_team : str,
                       away_team : str, n : int=100, seed : int=90,
-                      rng : np.random.Generator=None) -> Union[int, int, bool, bool]:
+                      rng : np.random.Generator=None,
+                      tie_breaker_pt : bool=False) -> Union[int, int, bool, bool]:
         """
         Simulate an game where away_team plays at home_team and trace
         contains draws from the posterior distribution for model parameters,
@@ -718,6 +735,9 @@ class IndependentNegativeBinomial(IndependentPoisson):
             RNG seed. Defaults to 90
         rng : numpy rng (optional)
             Defaults to None and is initialized internally
+        tie_breaker_pt : bool (optional)
+            If the game is tied, pick random team with even probability 
+            to get 1 OT point. Defaults to False.
 
         Returns
         -------
@@ -788,7 +808,16 @@ class IndependentNegativeBinomial(IndependentPoisson):
         outcomes = np.asarray([[ut._outcome(hpt, apt)] for hpt, apt in zip(home_pts, away_pts)]).squeeze()
         home_win, tie = outcomes[:,0], outcomes[:,1]
 
-        return home_pts, away_pts, home_win, tie
+        # Assign tiebreaker point?
+        for ii in range(len(home_win)):
+            if tie[ii] and tie_breaker_pt:
+                hw = rng.integers(low=0, high=1, size=1)
+                if hw == 1:
+                    home_pts[ii] += 1
+                else:
+                    away_pts[ii] += 1
+
+            return home_pts, away_pts, home_win, tie
 
     
 class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
