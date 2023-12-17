@@ -114,6 +114,7 @@ class NFLSeason(_GenericSeason):
        # Load data from local path
         if self.path is not None:
             self.raw_season_df = pd.read_csv(self.path)
+
         # Pull raw season data from pro-football-reference.com
         else:
             self.raw_season_df = pull_nfl_full_season_games_raw(year=self.year)
@@ -252,6 +253,9 @@ def pull_nfl_full_season_games_raw(year : int=2022) -> pd.DataFrame:
     # Drop columns we do not need for data processing or inference
     df = df[["Date", "Week", "home_team", "home_pts", "away_team",
              "away_pts"]].copy()
+
+    # Set dtype
+    df["Week"] = df["Week"].astype(str)
 
     # Try dropping a dummy divider row
     df = df[df["Date"] != "Playoffs"].copy()

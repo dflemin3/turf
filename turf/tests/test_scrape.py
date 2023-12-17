@@ -8,8 +8,9 @@ Test turf data scraping functions
 
 """
 
-from turf import scrape
 import numpy as np
+import os
+from turf import scrape
 
 
 def test_NFLSeason_data():
@@ -17,14 +18,14 @@ def test_NFLSeason_data():
     Test to ensure NFLSeason class scrapes and processes data as expected.
     """
 
-    # Pull data
-    season = scrape.NFLSeason(year=2020, week=None)
+    # Pull data locally
+    cwd = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(cwd, 'test_data', 'nfl_sample.csv')
+    season = scrape.NFLSeason(year=2020, path=path)
 
     # Test 0) year and week
     err_msg = "Error in test 0 for test_Season_data - incorrect season/year"
     assert season.year == 2020, err_msg
-    err_msg = "Error in test 0 for test_Season_data - incorrect season/year"
-    assert season.week is None, err_msg
 
     # Test 1) Pull all season games, process data
     # Make sure unplayed dataframe is empty (full season has been played)
@@ -39,7 +40,7 @@ def test_NFLSeason_data():
     # Test 3) Check played df
     test = season.played_df.iloc[25].values.tolist()
     err_msg = "Error in test 3 for test_Season_week_data - incorrect played_df"
-    assert(np.all(test == ['2020-09-20', '2', 'NYJ', '13', 'SF', '31'])), err_msg
+    assert(np.all(test == ['2020-09-20', '2', 'NYJ', 13, 'SF', 31])), err_msg
 
 
 if __name__ == "__main__":
