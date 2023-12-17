@@ -4,7 +4,7 @@
 ---------------------------------------------
 
 Functions for scraping NFL game results from pro-football-reference.com
-and NHL results from https://www.hockey-reference.com/
+and NHL results from hockey-reference.com
 
 @author: David Fleming, 2023
 
@@ -64,7 +64,7 @@ class _GenericSeason(object):
         String output for print(Season)
         """
 
-        return f"{self.year}-{self.year+1} NFL season data"
+        return f"{self.year}-{self.year+1} season data"
 
     
     def save(self, path : str="season.csv") -> None:
@@ -169,23 +169,6 @@ class NFLSeason(_GenericSeason):
 
         return f"{self.year}-{self.year+1} NFL season data up to Week {self.week}"
 
-    
-    def save(self, path : str="season.csv") -> None:
-        """
-        Save raw season data as a csv named path
-
-        Parameters
-        ----------
-        path : str
-            Defaults to "season.csv" in the cwd
-        
-        Returns
-        -------
-        None
-        """
-
-        # Cache raw season data as csv
-        self.raw_season_df.to_csv(path, index=False, header=True)
 
 
 class NHLSeason(_GenericSeason):
@@ -238,24 +221,6 @@ class NHLSeason(_GenericSeason):
         """
 
         return f"{self.year}-{self.year+1} NHL season data"
-
-    
-    def save(self, path : str="season.csv") -> None:
-        """
-        Save raw season data as a csv named path
-
-        Parameters
-        ----------
-        path : str
-            Defaults to "season.csv" in the cwd
-        
-        Returns
-        -------
-        None
-        """
-
-        # Cache raw season data as csv
-        self.raw_season_df.to_csv(path, index=False, header=True)
 
 
 ################################################################################

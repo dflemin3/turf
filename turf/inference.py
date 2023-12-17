@@ -613,7 +613,7 @@ class CorrelatedPoisson(IndependentPoisson):
                              observed=obs_pts, dims=("games", "att_def"))
 
 
-class IndependentNegativeBinomial(IndependentPoisson):
+class IndependentNegativeBinomial(_GenericModel):
     """
     Hierarchical generalized linear Poisson model similar to the model disccused
     https://discovery.ucl.ac.uk/id/eprint/16040/1/16040.pdf with the NegativeBinomial
