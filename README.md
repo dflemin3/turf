@@ -27,8 +27,9 @@ to install.
 Simple example
 ==============
 
-Below gives a simple example for how to use `turf` to run a hierarchical Bayesian inference on NFL season results
-for the Thursday Night Football game, Carolina at Chicago, on November 9th, 2023.
+Below gives a simple example for how to use `turf` to run a hierarchical Bayesian inference on prior NFL season results
+to predict the results of the Thursday Night Football game, Denver at Detroit, ran and played on December 16th, 2023.
+Here, we assume a Negative Binomial likelihood for the points scored by each team.
 
 ```python
 import pymc as pm
@@ -36,19 +37,19 @@ import numpy as np
 from turf import scrape, inference
 
 # Pull season results to-date
-season = scrape.Season(year=2023, week=None)
+season = scrape.NFLSeason(year=2023, week=None)
 
-# Initialize model where points
-model = inference.CorrelatedPoisson(season)
+# Initialize model
+model = inference.IndependentNegativeBinomialMixture(season)
 
 # Run inference on 4 cores (1 chain per core)
-model.run_inference(tune=1000, draws=1000, target_accept=0.9, chains=4)
+model.run_inference(tune=2000, draws=1000, target_accept=0.95, chains=4)
 
-# Simulate a game - Buffalo Bills at the Cincinnati Bengals
-away_team = "CAR"
-home_team = "CHI"
-ou = 38
-home_spread = -3.5
+# Simulate a game - Denver Broncos at the Detroit Lions
+away_team = "DEN"
+home_team = "DET"
+ou = 48
+home_spread = -4.5
 
 # Simulate n game outcomes
 home_pts, away_pts, home_win, tie = model.simulate_game(home_team, away_team, n=1000, seed=None)
@@ -67,18 +68,19 @@ print(f"ML: - odds of {home_team} ML : {np.round(100*home_ml, decimals=2):.2f}%"
 print(f"Median outcome: {away_team} {np.median(away_pts):.0f} | {home_team} {np.median(home_pts):.0f}")
 print()
 
-# ---CAR at CHI---
-# O/U: 38 - Over odds : 82.64%
-# Spread: CHI -3.5 - odds of CHI cover : 56.10%
-# ML: - odds of CHI ML : 71.51%
-# Median outcome: CAR 20 | CHI 25
+# Simulated outcome according to inferred model
+# ---DEN at DET---
+# O/U: 48 - Over odds : 50.34%
+# Spread: DET -4.5 - odds of DET cover : 50.73%
+# ML: - odds of DET ML : 61.38%
+# Median outcome: DEN 21 | DET 26
 ```
 
 Analyses
 ========
 
 Check out the notebook that demonstrate how to characterize teams' offensive and defensive strengths and simulate games:
-- [Example and simulation](https://github.com/dflemin3/turf/blob/main/examples/example.ipynb)
+- [Inference and simulation of NFL games](https://github.com/dflemin3/turf/blob/main/examples/nfl_example.ipynb)
 
 Check out the following notebook that demonstrates how to calculate a team's strength of schedule (SoS):
-- [SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/sos.ipynb)
+- [NFL SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/nfl_sos.ipynb)
