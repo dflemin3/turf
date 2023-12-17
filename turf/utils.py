@@ -13,7 +13,8 @@ mapping team names to their standard abbreviations.
 import pandas as pd
 
 
-__all__ = ["_nfl_name_conv", "_hex_color_nfl", "check_model_inference"]
+__all__ = ["_nfl_name_conv", "_hex_color_nfl", "_hex_color_nhl",
+           "check_model_inference"]
 
 
 ################################################################################
@@ -89,7 +90,7 @@ _nhl_name_conv = {'Arizona Coyotes' : 'ARI',
                    'New York Rangers' : 'NYR',
                    'Ottawa Senators' : 'OTT',
                    'Philadelphia Flyers' : 'PHI',
-                   'Phoenix Coyotes' : 'PHX',
+                   'Phoenix Coyotes' : 'ARI',
                    'Pittsburgh Penguins' : 'PIT',
                    'Seattle Kraken' : 'SEA',
                    'San Jose Sharks' : 'SJS',
@@ -104,6 +105,7 @@ _nhl_name_conv = {'Arizona Coyotes' : 'ARI',
                    'Washington Capitals' : 'WSH'}
 
 
+# NFL hex colors
 _hex_color_nfl = {"BLT_0" : "#241773",
                   "BLT_1" : "#000000",
                   "CIN_0" : "#FB4F14",
@@ -168,6 +170,73 @@ _hex_color_nfl = {"BLT_0" : "#241773",
                   "SF_1" : "#B3995D",
                   "SEA_0" : "#002244",
                   "SEA_1" : "#69BE28"}
+
+
+# NHL hex colors
+_hex_color_nhl = {"ANA_0" : "#89734C",
+                  "ANA_1" : "#FC4C02",
+                  "ARI_0" : "#6F263D",
+                  "ARI_1" : "#DDCBA4",
+                  "BOS_0" : "#000000",
+                  "BOS_1" : "#FFD100",
+                  "BUF_0" : "#003087",
+                  "BUF_1" : "#FFB81C",
+                  "CAR_0" : "#C8102E",
+                  "CAR_1" : "#000000",
+                  "CGY_0" : "#C8102E",
+                  "CGY_1" : "#F1BE48",
+                  "CHI_0" : "#C8102E",
+                  "CHI_1" : "#000000",
+                  "COL_0" : "#6F263D",
+                  "COL_1" : "#236192",
+                  "CBJ_0" : "#041E42",
+                  "CBJ_1" : "#C8102E",
+                  "DAL_0" : "#00843D",
+                  "DAL_1" : "#A2AAAD",
+                  "DET_0" : "#C8102E",
+                  "DET_1" : "#FFFFFF",
+                  "EDM_0" : "#CF4520",
+                  "EDM_1" : "#00205B",
+                  "FLA_0" : "#C8102E",
+                  "FLA_1" : "#B9975B",
+                  "LAK_0" : "#000000",
+                  "LAK_1" : "#A2AAAD",
+                  "MIN_0" : "#154734",
+                  "MIN_1" : "#DDCBA4",
+                  "MTL_0" : "#A6192E",
+                  "MTL_1" : "#FFFFFF",
+                  "NSH_0" : "#FFB81C",
+                  "NSH_1" : "#041E42",
+                  "NJD_0" : "#C8102E",
+                  "NJD_1" : "#FFFFFF",
+                  "NYI_0" : "#FC4C02",
+                  "NYI_1" : "#003087",
+                  "NYR_0" : "#0033A0",
+                  "NYR_1" : "#C8102E",
+                  "OTT_0" : "#000000",
+                  "OTT_1" : "#C8102E",
+                  "PHI_0" : "#CF4520",
+                  "PHI_1" : "#000000",
+                  "PIT_0" : "#000000",
+                  "PIT_1" : "#FFB81C",
+                  "SJS_0" : "#006272",
+                  "SJS_1" : "#E57200",
+                  "SEA_0" : "#051C2C",
+                  "SEA_1" : "#9CDBD9",
+                  "STL_0" : "#003087",
+                  "STL_1" : "#FFFFFF",
+                  "TBL_0" : "#00205B",
+                  "TBL_1" : "#FFFFFF",
+                  "TOR_0" : "#00205B",
+                  "TOR_1" : "#FFFFFF",
+                  "VAN_0" : "#00205B",
+                  "VAN_1" : "#FFFFFF",
+                  "VGK_0" : "#C69214",
+                  "VGK_1" : "#333F48",
+                  "WSH_0" : "#C8102E",
+                  "WSH_1" : "#041E42",
+                  "WPG_0" : "#041E42",
+                  "WPG_1" : "#004C97"}
 
 
 def __nfl_home_away(x : pd.Series) -> str | int | str | int:
