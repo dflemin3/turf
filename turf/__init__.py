@@ -6,7 +6,7 @@ turf package init file
 
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 __author__ = "David Fleming"
 __copyright__ = "Copyright 2023 David Fleming"
 
