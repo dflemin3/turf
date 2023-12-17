@@ -57,6 +57,7 @@ setup(name = 'turf',
       author = 'David Fleming',
       license = 'MIT',
       packages = ['turf'],
+      package_data={'turf': ['tests/test_data/*.csv'],}
       install_requires = [
                           'numpy',
                           'matplotlib',
