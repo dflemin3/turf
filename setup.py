@@ -47,7 +47,7 @@ VERSION = version('turf/__init__.py')
 # Setup!
 setup(name = 'turf',
       version = VERSION,
-      description = 'NFL Hierarchical Monte Carlo inference and game simulation',
+      description = 'NFL and NHL Hierarchical Monte Carlo inference and game simulation',
       long_description = readme(),
       classifiers = [
                       'Development Status :: 5 - Production/Stable',
@@ -68,7 +68,8 @@ setup(name = 'turf',
                           'beautifulsoup4',
                           'lxml',
                           'seaborn',
-                          'xarray'
+                          'xarray',
+                          'pytest'
                           ],
       include_package_data = True,
       zip_safe = False)

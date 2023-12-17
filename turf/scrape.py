@@ -4,6 +4,7 @@
 ---------------------------------------------
 
 Functions for scraping NFL game results from pro-football-reference.com
+and NHL results from https://www.hockey-reference.com/
 
 @author: David Fleming, 2023
 
@@ -82,78 +83,6 @@ class _GenericSeason(object):
 
         # Cache raw season data as csv
         self.raw_season_df.to_csv(self.path, index=False, header=True)
-
-
-################################################################################
-#
-# Data scraping functions
-#
-################################################################################
-
-
-def pull_nfl_full_season_games_raw(year : int=2022) -> pd.DataFrame:
-    """
-    Scrape full NFL season game data for the year-year+1 season from
-    https://www.pro-football-reference.com/years/{year}/games.htm to get the
-    following data for all played and unplayed games:
-    "Date", "Week", "home_team", "home_pts", "away_team", "away_pts"
-
-    Parameters
-    ----------
-    year : int
-        Year in which season begins. Year = 2022 (Default) corresponds to
-        the 2022-2023 season, for example.
-
-    Returns
-    -------
-    df : pandas.DataFrame
-        processed dataframe of NFL games for the year-year+1 season
-    """
-
-    # URL for up-to-date NFL stats
-    url = f"https://www.pro-football-reference.com/years/{year}/games.htm"
-
-    # Download data
-    df = pd.read_html(url, parse_dates=True, attrs={'id': 'games'},
-                      header=0, index_col=0)[0]
-
-    # Drop rows that are simply dividers
-    df.drop("Week", inplace=True)
-    try:
-        df.drop("Playoffs", inplace=True)
-    except KeyError:
-        pass
-
-    # Now reset index so week is a column
-    df.reset_index(drop=False, inplace=True)
-
-    # Rename column names
-    df.rename(columns={"Unnamed: 5" : "away_indicator", "Unnamed: 7" : "link"},
-              inplace=True)
-
-    # Figure out who home and away teams are, how much they scored, respectively
-    new_cols_df = df.apply(lambda x: ut.__nfl_home_away(x),
-                           axis=1,
-                           result_type='expand').rename(columns={0 : "away_team",
-                                                                 1 : "away_pts",
-                                                                 2 : "home_team",
-                                                                 3 : "home_pts"})
-    # Stack back onto dataset
-    df = pd.concat([df, new_cols_df], axis='columns')
-
-    # Drop columns we do not need for data processing or inference
-    df = df[["Date", "Week", "home_team", "home_pts", "away_team",
-             "away_pts"]].copy()
-
-    # Try dropping a dummy divider row
-    df = df[df["Date"] != "Playoffs"].copy()
-
-    # Map the names to standard abbreviations
-    df["away_team"] = df["away_team"].map(ut._nfl_name_conv)
-    df["home_team"] = df["home_team"].map(ut._nfl_name_conv)
-
-    return df
-
 
 
 class NFLSeason(_GenericSeason):
