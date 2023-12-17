@@ -8,10 +8,10 @@ Test turf name parsing
 
 """
 
-from turf.utils import _conv
+from turf.utils import _nfl_name_conv
 
 
-def test_name_parser():
+def test_nfl_name_parser():
     """
     Test football name parsing dictionary
 
@@ -26,32 +26,32 @@ def test_name_parser():
 
     # Test 1 name parsing
     name = "Washington Football Team"
-    parsed_name = _conv[name]
+    parsed_name = _nfl_name_conv[name]
 
     err_msg = "Test 1 failure: name _conv returned incorrect abbreviated team name"
     assert parsed_name == "WAS", err_msg
 
     # Test 2 name parsing
     name = "Washington Redskins"
-    parsed_name = _conv[name]
+    parsed_name = _nfl_name_conv[name]
 
     err_msg = "Test 2 failure: name _conv returned incorrect abbreviated team name"
     assert parsed_name == "WAS", err_msg
 
     # Test 3 name parsing
     name = "Arizona Cardinals"
-    parsed_name = _conv[name]
+    parsed_name = _nfl_name_conv[name]
 
     err_msg = "Test 3 failure: name _conv returned incorrect abbreviated team name"
     assert parsed_name == "ARZ", err_msg
 
     # Test 4 name parsing
     name = "St. Louis Rams"
-    parsed_name = _conv[name]
+    parsed_name = _nfl_name_conv[name]
 
     err_msg = "Test 4 failure: name _conv returned incorrect abbreviated team name"
     assert parsed_name == "LAR", err_msg
 
 
 if __name__ == "__main__":
-    test_team_name_parser()
+    test_team_nfl_name_parser()

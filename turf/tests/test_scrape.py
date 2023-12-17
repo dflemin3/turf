@@ -12,7 +12,7 @@ from turf import scrape
 import numpy as np
 
 
-def test_full_season_raw_scrape():
+def test_full_nfl_season_raw_scrape():
     """
     Test data full season raw data scraping function
 
@@ -26,20 +26,20 @@ def test_full_season_raw_scrape():
 
     # Check to see if you pull full season raw, data is correct
     truth = ['2020-02-02', 'SuperBowl', 'KC', '31', 'SF', '20']
-    test = scrape.pull_full_season_games_raw(year=2019).iloc[-1].values.tolist()
+    test = scrape.pull_nfl_full_season_games_raw(year=2019).iloc[-1].values.tolist()
     err_msg = "Error in scrape.pull_full_season_games_raw test"
     assert np.all(truth == test), err_msg
 
 
-def test_Season_data():
+def test_NFLSeason_data():
     """
-    Test to ensure Season class scrapes and processes data as expected.
+    Test to ensure NFLSeason class scrapes and processes data as expected.
     """
 
 
 
     # Pull data
-    season = scrape.Season(year=2020, week=None)
+    season = scrape.NFLSeason(year=2020, week=None)
 
     # Test 0) year and week
     err_msg = "Error in test 0 for test_Season_data - incorrect season/year"
@@ -63,13 +63,13 @@ def test_Season_data():
     assert(np.all(test == ['2020-09-20', '2', 'NYJ', '13', 'SF', '31'])), err_msg
 
 
-def test_Season_week_data():
+def test_NFLSeason_week_data():
     """
     Test to ensure Season class scrapes and processes data as expected.
     """
 
     # Pull data as if season has only been played through week 6
-    season = scrape.Season(year=2018, week=7)
+    season = scrape.NFLSeason(year=2018, week=7)
 
     # Test 0) year and week
     err_msg = "Error in test 0 for test_Season_week_data - incorrect season/year"
@@ -95,6 +95,6 @@ def test_Season_week_data():
 
 
 if __name__ == "__main__":
-    test_full_season_raw_scrape()
-    test_Season_data()
-    test_Season_week_data()
+    test_full_nfl_season_raw_scrape()
+    test_NFLSeason_data()
+    test_NFLSeason_week_data()
