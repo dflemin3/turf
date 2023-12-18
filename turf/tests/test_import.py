@@ -21,7 +21,7 @@ def test_import():
     """
 
     import turf
-# end function
+
 
 if __name__ == "__main__":
     test_import()
