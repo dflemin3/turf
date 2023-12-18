@@ -7,7 +7,7 @@ Overview
 National Football League (NFL) and Nation Hockey League (NHL) games. These models are inspired
 by the framework introduced in [Baio and Blangiardo (2010)](https://doi.org/10.1080/02664760802684177).
 
-Runs for Python 3.9+
+Runs for Python 3.10+
 
 <p>
 <a href="https://github.com/dflemin3/turf">
