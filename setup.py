@@ -70,6 +70,7 @@ setup(name = 'turf',
                           'lxml',
                           'seaborn',
                           'xarray',
-                          'pytest'],
+                          'pytest',
+                          'coverage'],
       include_package_data = True,
       zip_safe = False)

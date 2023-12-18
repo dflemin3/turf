@@ -3,7 +3,7 @@
 :py:mod:`inference.py` - Inference classes, functions
 -----------------------------------------------------
 
-Functions and classes for hierarchical inference of NFL games
+Functions and classes for hierarchical inference of NFL and NHL games
 
 @author: David Fleming, 2023
 
