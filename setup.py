@@ -57,9 +57,9 @@ setup(name = 'turf',
       author = 'David Fleming',
       license = 'MIT',
       packages = ['turf'],
-      package_data={'turf': ['tests/test_data/*.csv'],}
-      install_requires = [
-                          'numpy',
+      package_data = {'turf': ['tests/test_data/*.csv']},
+      package_dir = {'turf' : 'turf'},
+      install_requires = ['numpy',
                           'matplotlib',
                           'pandas',
                           'pymc>4',
@@ -70,7 +70,6 @@ setup(name = 'turf',
                           'lxml',
                           'seaborn',
                           'xarray',
-                          'pytest'
-                          ],
+                          'pytest'],
       include_package_data = True,
       zip_safe = False)
