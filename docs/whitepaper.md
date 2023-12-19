@@ -20,7 +20,7 @@ For each team and game, the log scoring intensities are given by
 $$
 \log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att}_{h,i} + \mathrm{def}_{a,i}
 $$
-and
+
 $$
 \log \theta_{a,i} = \mathrm{intercept} + \mathrm{att}_{a,i} + \mathrm{def}_{h,i}
 $$
