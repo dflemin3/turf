@@ -18,7 +18,8 @@ For each team and game, the log scoring intensities are given by
 
 $$
 \log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att}_{h,i} - \mathrm{def}_{a,i}
-$$$$
+$$
+$$
 \log \theta_{a,i} = \mathrm{intercept} + \mathrm{att}_{a,i} - \mathrm{def}_{h,i}
 $$
 
@@ -38,7 +39,8 @@ Individual team effects are model as exchangeable random variables sampled from 
 
 $$
 \mathrm{att}_x \sim \mu_{att,x} + \mathcal{N}(0,1) * \sigma_{att,x}
-$$ $$
+$$
+$$
 \mathrm{def}_x \sim \mu_{def,x} + \mathcal{N}(0,1) * \sigma_{def,x}
 $$
 for the $i^{th}$ team.
@@ -48,7 +50,8 @@ Good teams have high att (+ scoring intensity) and low def parameters (- scoring
 We enforce a "sum-to-zero" constraint
 $$
 \sum_{x \in teams} \mathrm{att_x} = 0
-$$ $$
+$$
+$$
 \sum_{x \in teams} \mathrm{def_x} = 0
 $$
 for parameter identifiability and interpretability.
@@ -56,11 +59,14 @@ for parameter identifiability and interpretability.
 The hyperpriors on the group attacking and defensive strengths are modeled as
 $$
 \mu_{att} \sim \mathcal{N}(0, 1)
-$$$$
+$$
+$$
 \mu_{def} \sim \mathcal{N}(0, 1)
-$$$$
+$$
+$$
 \sigma_{att} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1)
-$$$$
+$$
+$$
 \sigma_{def} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1).
 $$
 
