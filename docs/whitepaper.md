@@ -10,17 +10,17 @@
 The first model we consider is similar to the model considered in Section 2 of [Baio and Blangiardo (2010)](https://doi.org/10.1080/02664760802684177). We assume the home and away points in the $i^{th}$ game, $y_{h,i}$ and $y_{a,i}$, respectively, are modeled as conditionally-independent Poisson random variables. A Poisson distribution is suitable for game scores as it models the probability of observing a number of events, like points, in a given time interval, like a game. This model is given by,
 
 $$
-y_{h,i} | \theta_{h,i} \sim Poisson(\theta_{h,i})
+y_{h,i} | \theta_{h,i} \sim \mathrm{Poisson}(\theta_{h,i})
 $$
 where $\theta_{h,i}$ is the scoring intensity for the home team in the $i^{th}$ game. The same quantities are modeled in the same way for the away team.
 
 For each team and game, the log scoring intensities are given by
 
 $$
-\log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att}_{h,i} - \mathrm{def}_{a,i}
+\log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att}_{h,i} + \mathrm{def}_{a,i}
 $$
 $$
-\log \theta_{a,i} = \mathrm{intercept} + \mathrm{att}_{a,i} - \mathrm{def}_{h,i}
+\log \theta_{a,i} = \mathrm{intercept} + \mathrm{att}_{a,i} + \mathrm{def}_{h,i}
 $$
 
 where the intercept term gives the typical amount of points scored by the average team and home indicates the additional points the home team typically gets due to not having to travel, fans, potentially favorable referee opinions, and more. $\mathrm{att}_{h,i}$ and $\mathrm{def}_{a,i}$ represent the attacking and defensive ability of the home and away teams in the $i^{th}$, respectively. This formalism effectively enables us to account for how a team's offense and their opponent's defense interact, for both home and away teams. 
