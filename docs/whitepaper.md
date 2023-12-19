@@ -20,7 +20,7 @@ For each team and game, the log scoring intensities are given by
 $$
 \log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att}_{h,i} + \mathrm{def}_{a,i}
 $$
-
+and
 $$
 \log \theta_{a,i} = \mathrm{intercept} + \mathrm{att}_{a,i} + \mathrm{def}_{h,i}
 $$
@@ -44,7 +44,7 @@ Individual team effects are model as exchangeable random variables sampled from 
 $$
 \mathrm{att}_x \sim \mu_{att,x} + \mathcal{N}(0,1) * \sigma_{att,x}
 $$
-
+and
 $$
 \mathrm{def}_x \sim \mu_{def,x} + \mathcal{N}(0,1) * \sigma_{def,x}
 $$
@@ -54,6 +54,7 @@ for the $i^{th}$ team.
 Good teams have high att (+ scoring intensity) and low def parameters (- scoring intensity imposed on opponent). Bad teams display the opposite.
 
 We enforce a "sum-to-zero" constraint
+
 $$
 \sum_{x \in teams} \mathrm{att_x} = 0
 $$
@@ -65,14 +66,15 @@ $$
 for parameter identifiability and interpretability.
 
 The hyperpriors on the group attacking and defensive strengths are modeled as
+
 $$
 \mu_{att} \sim \mathcal{N}(0, 1)
 $$
-
+and
 $$
 \mu_{def} \sim \mathcal{N}(0, 1)
 $$
-
+for the means and
 $$
 \sigma_{att} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1)
 $$
@@ -80,7 +82,7 @@ $$
 $$
 \sigma_{def} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1)
 $$
-.
+for the standard deviations.
 
 We use a hierarchical structure for this model by assuming that attacking and defensive strengths for each team are drawn from common parent distributions. We perform hierarchical Bayesian inference using `pymc` to infer posterior distributions for the parameters specified above. For more discussion on this type of model, see [Baio and Blangiardo (2010)](https://doi.org/10.1080/02664760802684177) and references therein.
 
