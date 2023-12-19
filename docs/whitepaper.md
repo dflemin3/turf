@@ -15,11 +15,11 @@ where $\theta_{h,i}$ is the scoring intensity for the home team in the $i^{th}$ 
 
 For each team and game, the log scoring intensities are given by
 
-$$\log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att}_{h,i} + \mathrm{def}_{a,i}$$
+$$\log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att_{h,i}} + \mathrm{def}_{a,i}$$
 
-$$\log \theta_{a,i} = \mathrm{intercept} + \mathrm{att}_{a,i} + \mathrm{def}_{h,i}$$
+$$\log \theta_{a,i} = \mathrm{intercept} + \mathrm{att_{a,i}} + \mathrm{def_{h,i}}$$
 
-where the intercept term gives the typical amount of points scored by the average team and home indicates the additional points the home team typically gets due to not having to travel, fans, potentially favorable referee opinions, and more. $\mathrm{att}_{h,i}$ and $\mathrm{def}_{a,i}$ represent the attacking and defensive ability of the home and away teams in the $i^{th}$, respectively. This formalism effectively enables us to account for how a team's offense and their opponent's defense interact, for both home and away teams. 
+where the intercept term gives the typical amount of points scored by the average team and home indicates the additional points the home team typically gets due to not having to travel, fans, potentially favorable referee opinions, and more. $\mathrm{att_{h,i}}$ and $\mathrm{def_{a,i}}$ represent the attacking and defensive ability of the home and away teams in the $i^{th}$, respectively. This formalism effectively enables us to account for how a team's offense and their opponent's defense interact, for both home and away teams. 
 
 We assume the following priors for the intercept and home advantage random parameters
 
@@ -29,9 +29,9 @@ $$\mathrm{home} \sim \mathcal{N}(0,1)$$
 
 Individual team effects are model as exchangeable random variables sampled from a common parent distribution (hyperprior). We use the following non-centered variables
 
-$$\mathrm{att}_x \sim \mu_{att,x} + \mathcal{N}(0,1) * \sigma_{att,x}$$
+$$\mathrm{att_x} \sim \mu_{att} + \mathcal{N}(0,1) * \sigma_{att}$$
 
-$$\mathrm{def}_x \sim \mu_{def,x} + \mathcal{N}(0,1) * \sigma_{def,x}$$
+$$\mathrm{def_x} \sim \mu_{def} + \mathcal{N}(0,1) * \sigma_{def}$$
 
 for att and def for the $i^{th}$ team.
 
