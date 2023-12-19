@@ -7,7 +7,7 @@ Overview
 National Football League (NFL) and Nation Hockey League (NHL) games. These models are inspired
 by the framework introduced in [Baio and Blangiardo (2010)](https://doi.org/10.1080/02664760802684177).
 
-Runs for Python 3.10+
+Tested for Python 3.10 and 3.11.
 
 <p>
 <a href="https://github.com/dflemin3/turf">
@@ -88,3 +88,5 @@ Check out the notebook that demonstrate how to characterize teams' offensive and
 Check out the following notebook that demonstrates how to calculate a team's strength of schedule (SoS):
 - [NFL SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/nfl_sos.ipynb)
 - [NHL SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/nhl_sos.ipynb)
+
+For more information on the math underpinning the models in `turf` read the [white paper](https://github.com/dflemin3/turf/blob/main/docs/whitepaper.md) 
