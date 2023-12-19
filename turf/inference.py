@@ -515,7 +515,7 @@ class IndependentPoisson(_GenericModel):
                 else:
                     away_pts[ii] += 1
 
-            return home_pts, away_pts, home_win, tie
+        return home_pts, away_pts, home_win, tie
 
 
 
@@ -817,7 +817,7 @@ class IndependentNegativeBinomial(_GenericModel):
                 else:
                     away_pts[ii] += 1
 
-            return home_pts, away_pts, home_win, tie
+        return home_pts, away_pts, home_win, tie
 
     
 class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
@@ -906,8 +906,7 @@ class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
             sigma_def = pm.Gamma("sigma_def", alpha=2, beta=0.1, dims="groups")
 
             # Prior for alphas (home and away)
-            alpha_base = pm.Exponential("alpha_base", 2, dims="att_def")
-            alpha = pm.Deterministic("alpha", pm.math.sqr(1 / alpha_base), dims="att_def")
+            alpha = pm.Gamma("alpha", alpha=2, beta=0.1, dims="att_def")
 
             # Attacking strength for each team by group
             atts_star_offset = pm.Normal("att_star_offset", mu=0, sigma=1, dims=("groups", "teams"))
