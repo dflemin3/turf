@@ -4,3 +4,4 @@ include Makefile
 include *.md
 recursive-include turf *.py
 recursive-include turf/tests/test_data *.csv
+recursive-include turf/tests/test_data *.nc

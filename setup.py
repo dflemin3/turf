@@ -51,13 +51,14 @@ setup(name = 'turf',
       long_description = readme(),
       classifiers = [
                       'Development Status :: 5 - Production/Stable',
-                      'Programming Language :: Python :: 3.9',
-                      'Programming Language :: Python :: 3.10'
+                      'Programming Language :: Python :: 3.10',
+                      'Programming Language :: Python :: 3.11'
                     ],
       author = 'David Fleming',
       license = 'MIT',
       packages = ['turf'],
-      package_data = {'turf': ['tests/test_data/*.csv']},
+      package_data = {'turf': ['tests/test_data/*.csv',
+                               'tests/test_data/*.nc']},
       package_dir = {'turf' : 'turf'},
       install_requires = ['numpy',
                           'matplotlib',
