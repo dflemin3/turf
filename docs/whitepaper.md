@@ -65,11 +65,13 @@ We use a hierarchical structure for this model by assuming that attacking and de
 
 Under construction
 
+![Negative binomial model graph](figs/nb.png)
+
 ## Negative Binomial with Groups
 
 Under construction
 
-![Negative Binomial mixture model graph](figs/nb_mix.png)
+![Negative binomial mixture model graph](figs/nb_mix.png)
 
 ## References
 
