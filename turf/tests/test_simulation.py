@@ -86,7 +86,7 @@ def test_nb():
     
 def test_poisson():
     """
-    Test game simulation with the NegativeBinomial model
+    Test game simulation with the Poisson model
     using 2020 NFL data
 
     Poisson:

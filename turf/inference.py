@@ -155,6 +155,9 @@ class _GenericModel(object):
             indicates if the game finished in a tie or not
         """
 
+        # Assert model is fit with new util fn
+        assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to simulations"
+
         # Implement this method for subclasses
         raise NotImplementedError()
 

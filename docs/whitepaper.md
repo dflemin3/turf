@@ -59,6 +59,8 @@ for the means and standard deviations.
 
 We use a hierarchical structure for this model by assuming that attacking and defensive strengths for each team are drawn from common parent distributions. We perform hierarchical Bayesian inference using `pymc` to infer posterior distributions for the parameters specified above. For more discussion on this type of model, see [Baio and Blangiardo (2010)](https://doi.org/10.1080/02664760802684177) and references therein.
 
+![Poisson model graph](figs/poisson.png)
+
 ## Negative Binomial
 
 Under construction
@@ -66,6 +68,8 @@ Under construction
 ## Negative Binomial with Groups
 
 Under construction
+
+![Negative Binomial mixture model graph](figs/nb_mix.png)
 
 ## References
 
