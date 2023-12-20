@@ -685,8 +685,7 @@ class IndependentNegativeBinomial(_GenericModel):
             sigma_def = pm.Gamma("sigma_def", alpha=2, beta=0.1)
 
             # Prior for alphas (home and away)
-            alpha_base = pm.Exponential("alpha_base", 2, dims="att_def")
-            alpha = pm.Deterministic("alpha", pm.math.sqr(1 / alpha_base), dims="att_def")
+            alpha = pm.Gamma("alpha", alpha=2, beta=0.1, dims="att_def")
 
             # Attacking, defensive strength for each team
             atts_star_offset = pm.Normal("atts_star_offset", mu=0, sigma=1, dims="teams")
