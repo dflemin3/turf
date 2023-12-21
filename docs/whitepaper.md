@@ -125,9 +125,9 @@ where the good attacking group as a prior mean of 1 for the attacking intensity.
 
 Each team's attacking and defensive strength are given as a weighted average of their bad, average, and good contributions with inferred weights $\pi$. We compute that weighted average as follows
 
-$$\mathrm{att}_x = \sum_{g \in G} \pi^{x,g}_{att} \mathrm{att}_{x,g}$$
+$$ \mathrm{att}_x = \sum_{g \in G} \pi^{x,g}_{att} \mathrm{att}_{x,g} $$
 
-$$\mathrm{def}_x = \sum_{g \in G} \pi^{x,g}_{def} \mathrm{def}_{x,g}$$
+$$ \mathrm{def}_x = \sum_{g \in G} \pi^{x,g}_{def} \mathrm{def}_{x,g} $$
 
 for the $x^{th}$ team's attacking and defensive abilities. The weights for each team's attacking and defensive mixture weights for each skill group, e.g., $\pi^{x,g}_{att}$, are sampled from the Diriclet distributions
 
@@ -137,9 +137,9 @@ $$ \pi^{def}_x \sim \mathrm{Dirichlet}(1,1,1) $$
 
 where we again enforce a "sum-to-zero" constraint
 
-$$\sum_{x \in teams} \mathrm{att}_x = 0$$
+$$ \sum_{x \in teams} \mathrm{att}_x = 0 $$
 
-$$\sum_{x \in teams} \mathrm{def}_x = 0$$
+$$ \sum_{x \in teams} \mathrm{def}_x = 0 $$
 
 for parameter identifiability and interpretability.
 
