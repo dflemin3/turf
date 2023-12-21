@@ -125,11 +125,11 @@ where the good attacking group as a prior mean of 1 for the attacking intensity.
 
 Each team's attacking and defensive strength are given as a weighted average of their bad, average, and good contributions with inferred weights $\pi$. We compute that weighted average as follows
 
-$$\mathrm{att_x} = \sum_{g \in G} \pi^{x,g}_{att} \mathrm{att_{x,g}}$$
+$$\mathrm{att}_x = \sum_{g \in G} \pi^{x,g}_{att} \mathrm{att_{x,g}}$$
 
 and
 
-$$\mathrm{def_x} = \sum_{g \in G} \pi^{x,g}_{def}\mathrm{def_{x,g}}$$
+$$\mathrm{def}_x = \sum_{g \in G} \pi^{x,g}_{def} \mathrm{def_{x,g}}$$
 
 for the $x^{th}$ team's attacking and defensive abilities. The weights for each team's attacking and defensive mixture weights for each skill group, e.g., $\pi^{x,g}_{att}$, are sampled from the Diriclet distributions
 
