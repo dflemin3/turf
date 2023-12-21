@@ -23,7 +23,7 @@ $$\log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att_{h,i}} + 
 
 $$\log \theta_{a,i} = \mathrm{intercept} + \mathrm{att_{a,i}} + \mathrm{def_{h,i}}$$
 
-where the intercept term gives the typical amount of points scored by the average team and home indicates the additional points the home team typically gets due to not having to travel, fans, potentially favorable referee opinions, and more. $\mathrm{att_{h,i}}$ and $\mathrm{def_{a,i}}$ represent the attacking and defensive ability of the home and away teams in the $i^{th}$, respectively. This formalism effectively enables us to account for how a team's offense and their opponent's defense interact, for both home and away teams. 
+where the intercept term gives the typical amount of points scored by the average team and home indicates the additional points the home team typically gets due to not having to travel, fans, potentially favorable referee opinions, and more. $\mathrm{att_{h,i}}$ and $\mathrm{def_{a,i}}$ represent the attacking and defensive ability of the home and away teams in the $i^{th}$ game, respectively. This formalism effectively enables us to account for how a team's offense and their opponent's defense interact, for both home and away teams. 
 
 We assume the following priors for the intercept and home advantage random parameters
 
@@ -85,7 +85,7 @@ The rest of the model for computing the scoring intensities, $\theta_{x,i}$, and
 
 ### Negative Binomial with Groups
 
-The third model we consider is similar in structure to the model considered in **Section 1.2**, but here, we assume that teams' attacking and defensive abilities are be We again model the home and away points in the $i^{th}$ game, $y_{h,i}$ and $y_{a,i}$, respectively, are modeled as conditionally-independent Negative Binomial random variables. This model is given by,
+The third model we consider is similar in structure to the model considered in **Section 1.2**, but here, we assume that teams' attacking and defensive abilities are a weighted average of contributions from good, average, and bad skill groups with some group membership. We again model the home and away points in the $i^{th}$ game, $y_{h,i}$ and $y_{a,i}$, respectively, are modeled as conditionally-independent Negative Binomial random variables. This model is given by,
 
 $$y_{h,i} | \theta_{h,i} \sim \mathrm{NB}(\theta_{h,i}, \alpha_h)$$
 
@@ -96,6 +96,56 @@ I assume the following prior for each $\alpha_x$ term
 $$\alpha_{x} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1)$$
 
 for $x \in \{\mathrm{home}, \mathrm{away}\}$.
+
+For each team and game, the log scoring intensities are given by
+
+$$\log \theta_{h,i} = \mathrm{intercept} + \mathrm{home} + \mathrm{att_{h,i}} + \mathrm{def}_{a,i}$$
+
+$$\log \theta_{a,i} = \mathrm{intercept} + \mathrm{att_{a,i}} + \mathrm{def_{h,i}}$$
+
+where the terms were definied in **Section 1.1**.
+
+Individual team effects are model as exchangeable random variables sampled from a weighted combination of parent distributions (hyperpriors). We use the following non-centered variables
+
+$$\mathrm{att_{x,g}} \sim \mu_{att,g} + \mathcal{N}(0,1) * \sigma_{att,g}$$
+
+$$\mathrm{def_{x,y}} \sim \mu_{def,g} + \mathcal{N}(0,1) * \sigma_{def,g}$$
+
+for att and def for the $i^{th}$ team and group $g \in G = \{\mathrm{bad}, \mathrm{average}, \mathrm{good} \}$. The hyperpriors for each group $g$ are
+
+$$\mu_{att} \sim \mathcal{N}([-1,0,1], 1)$$
+
+$$\mu_{def} \sim \mathcal{N}([1,0,-1], 1)$$
+
+$$\sigma_{att} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1)$$
+
+$$\sigma_{def} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1)$$
+
+where the good attacking group as a prior mean of 1 for the attacking intensity. All groups share the same form of attacking and defensive standard deviation hyperprior.
+
+Each team's attacking and defensive strength are given as a weighted average of their bad, average, and good contributions with inferred weights $\pi$. We compute that weighted average as follows
+
+$$\mathrm{att_{x}} = \sum_{g \in G} \pi^{x,g}_{att}\mathrm{att_{x,g}}$$
+
+and
+
+$$\mathrm{def_{x}} = \sum_{g \in G} \pi^{x,g}_{def}\mathrm{att_{x,g}}$$
+
+for the $x^{th}$ team's attacking and defensive abilities. The weights for each team's attacking and defensive mixture weights for each skill group, e.g., $\pi^{x,g}_{att}$, are sampled from the Diriclet distributions
+
+$$ \pi^{att}_x \sim \mathrm{Dirichlet}(1,1,1) $$
+
+and
+
+$$ \pi^{def}_x \sim \mathrm{Dirichlet}(1,1,1) $$.
+
+We again enforce a "sum-to-zero" constraint
+
+$$\sum_{x \in teams} \mathrm{att_x} = 0$$
+
+$$\sum_{x \in teams} \mathrm{def_x} = 0$$
+
+for parameter identifiability and interpretability.
 
 Below, we display the full `pymc` model graph.
 
