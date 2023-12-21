@@ -33,9 +33,9 @@ $$\mathrm{home} \sim \mathcal{N}(0,1)$$
 
 Individual team effects are model as exchangeable random variables sampled from a common parent distribution (hyperprior). We use the following non-centered variables
 
-$$\mathrm{att_x} \sim \mu_{att} + \mathcal{N}(0,1) * \sigma_{att}$$
+$$\mathrm{att}_i \sim \mu_{att} + \mathcal{N}(0,1) * \sigma_{att}$$
 
-$$\mathrm{def_x} \sim \mu_{def} + \mathcal{N}(0,1) * \sigma_{def}$$
+$$\mathrm{def}_i \sim \mu_{def} + \mathcal{N}(0,1) * \sigma_{def}$$
 
 for att and def for the $i^{th}$ team.
 
@@ -107,11 +107,11 @@ where the terms were definied in **Section 1.1**.
 
 Individual team effects are model as exchangeable random variables sampled from a weighted combination of parent distributions (hyperpriors). We use the following non-centered variables
 
-$$\mathrm{att_{x,g}} \sim \mu_{att,g} + \mathcal{N}(0,1) * \sigma_{att,g}$$
+$$\mathrm{att_{i,g}} \sim \mu_{att,g} + \mathcal{N}(0,1) * \sigma_{att,g}$$
 
-$$\mathrm{def_{x,y}} \sim \mu_{def,g} + \mathcal{N}(0,1) * \sigma_{def,g}$$
+$$\mathrm{def_{i,y}} \sim \mu_{def,g} + \mathcal{N}(0,1) * \sigma_{def,g}$$
 
-for att and def for the $i^{th}$ team and group $g \in G = \{\mathrm{bad}, \mathrm{average}, \mathrm{good} \}$. The hyperpriors for each group $g$ are
+for att and def for the $i^{th}$ game and group $g \in G = \{\mathrm{bad}, \mathrm{average}, \mathrm{good} \}$. The hyperpriors for each group $g$ are
 
 $$\mu_{att} \sim \mathcal{N}([-1,0,1], 1)$$
 
@@ -121,25 +121,25 @@ $$\sigma_{att} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1)$$
 
 $$\sigma_{def} \sim \mathrm{Gamma}(\alpha=2, \beta=0.1)$$
 
-where the good attacking group as a prior mean of 1 for the attacking intensity. All groups share the same form of attacking and defensive standard deviation hyperprior.
+where the good attacking group as a prior mean of 1 for the attacking intensity, for example. All groups share the same form of attacking and defensive standard deviation hyperprior.
 
 Each team's attacking and defensive strength are given as a weighted average of their bad, average, and good contributions with inferred weights $\pi$. We compute that weighted average as follows
 
-$$ \mathrm{att}_x = \sum_{g \in G} \pi^{x,g}_{att} \mathrm{att}_{x,g} $$
+$$ \mathrm{att}_i = \sum_{g \in G} \pi_{att}^{i,g} \mathrm{att}_{i,g} $$
 
-$$ \mathrm{def}_x = \sum_{g \in G} \pi^{x,g}_{def} \mathrm{def}_{x,g} $$
+$$ \mathrm{def}_i = \sum_{g \in G} \pi_{def}^{i,g} \mathrm{def}_{i,g} $$
 
-for the $x^{th}$ team's attacking and defensive abilities. The weights for each team's attacking and defensive mixture weights for each skill group, e.g., $\pi^{x,g}_{att}$, are sampled from the Diriclet distributions
+for the $i^{th}$ team's attacking and defensive abilities. The weights for each team's attacking and defensive mixture weights for each skill group, e.g., $\pi^{i,g}_{att}$, are sampled from the Diriclet distributions
 
-$$ \pi^{att}_x \sim \mathrm{Dirichlet}(1,1,1) $$
+$$ \pi^{att}i \sim \mathrm{Dirichlet}(1,1,1) $$
 
-$$ \pi^{def}_x \sim \mathrm{Dirichlet}(1,1,1) $$
+$$ \pi^{def}_i \sim \mathrm{Dirichlet}(1,1,1) $$
 
-where we again enforce a "sum-to-zero" constraint
+for the $i^{th}$ team. We again enforce a "sum-to-zero" constraint
 
-$$ \sum_{x \in teams} \mathrm{att}_x = 0 $$
+$$ \sum_{i \in teams} \mathrm{att}_i = 0 $$
 
-$$ \sum_{x \in teams} \mathrm{def}_x = 0 $$
+$$ \sum_{i \in teams} \mathrm{def}_i = 0 $$
 
 for parameter identifiability and interpretability.
 
