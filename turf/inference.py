@@ -120,7 +120,7 @@ class _GenericModel(object):
 
 
     def simulate_games(self, home_team : str,
-                       away_team : str, n : int=100, seed : int=None,
+                       away_team : str, n : int=100, seed : int=None, neutral_site : bool=False,
                        rng : np.random.Generator=None, tie_breaker_pt : bool=False) -> None:
         """
         Simulate an game where away_team plays at home_team and trace
@@ -137,6 +137,8 @@ class _GenericModel(object):
             Number of games to simulate. Defaults to 100
         seed : int (optional)
             RNG seed. Defaults to 90
+        neutral_site : bool (optional)
+            Whether game is played at a neutral site or not. Defaults to False
         rng : numpy rng (optional)
             Defaults to None and is initialized internally
         tie_breaker_pt : bool (optional)
@@ -416,7 +418,7 @@ class IndependentPoisson(_GenericModel):
 
 
     def simulate_game(self, home_team : str,
-                      away_team : str, n : int=100, seed : int=90,
+                      away_team : str, n : int=100, seed : int=90, neutral_site : bool=False,
                       rng : np.random.Generator=None,
                       tie_breaker_pt : bool=False) -> Union[int, int, bool, bool]:
         """
@@ -436,6 +438,8 @@ class IndependentPoisson(_GenericModel):
             Number of games to simulate. Defaults to 100
         seed : int (optional)
             RNG seed. Defaults to 90
+        neutral_site : bool (optional)
+            Whether game is played at a neutral site or not. Defaults to False
         rng : numpy rng (optional)
             Defaults to None and is initialized internally
         tie_breaker_pt : bool (optional)
@@ -480,8 +484,13 @@ class IndependentPoisson(_GenericModel):
             ii, cc = vals
 
             # Extract parameters
-            home[jj] = float(self.trace_.posterior.home.loc[cc,ii])
             intercept[jj] = float(self.trace_.posterior.intercept.loc[cc,ii])
+
+            # Played at neutral site?
+            if neutral_site:
+                home[jj] = 0.0
+            else:
+                home[jj] = float(self.trace_.posterior.home.loc[cc,ii])
             
             # Extract posterior parameters for team, but allow median team to play
             if home_team == 'median':
@@ -715,7 +724,7 @@ class IndependentNegativeBinomial(_GenericModel):
 
     
     def simulate_game(self, home_team : str,
-                      away_team : str, n : int=100, seed : int=90,
+                      away_team : str, n : int=100, seed : int=90, neutral_site : bool=False,
                       rng : np.random.Generator=None,
                       tie_breaker_pt : bool=False) -> Union[int, int, bool, bool]:
         """
@@ -735,6 +744,8 @@ class IndependentNegativeBinomial(_GenericModel):
             Number of games to simulate. Defaults to 100
         seed : int (optional)
             RNG seed. Defaults to 90
+        neutral_site : bool (optional)
+            Whether game is played at a neutral site or not. Defaults to False
         rng : numpy rng (optional)
             Defaults to None and is initialized internally
         tie_breaker_pt : bool (optional)
@@ -780,9 +791,14 @@ class IndependentNegativeBinomial(_GenericModel):
             ii, cc = vals
 
             # Extract parameters
-            home[jj] = float(self.trace_.posterior.home.loc[cc,ii])
             intercept[jj] = float(self.trace_.posterior.intercept.loc[cc,ii])
             alpha[jj,:] = self.trace_.posterior.alpha.loc[cc,ii]
+
+            # Played at neutral site?
+            if neutral_site:
+                home[jj] = 0.0
+            else:
+                home[jj] = float(self.trace_.posterior.home.loc[cc,ii])
             
             # Extract posterior parameters for team, but allow median team to play
             if home_team == 'median':
@@ -797,6 +813,10 @@ class IndependentNegativeBinomial(_GenericModel):
             else:
                 away_att[jj] = float(self.trace_.posterior.atts.loc[cc,ii,away_team])
                 away_def[jj] = float(self.trace_.posterior.defs.loc[cc,ii,away_team])
+
+            # Is game played at a neutral site?
+            if neutral_site:
+                home[jj] = 0.0
 
         # Compute home and away goals using log-linear model, draws for model parameters
         # from posterior distribution. Recall - model points as a draws from
