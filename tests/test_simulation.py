@@ -4,7 +4,9 @@
 
 Test simulation methods in turf
 
-@author: David Fleming, 2023
+@author: David Fleming, 2024
+
+TODO - fix data loading
 
 """
 
@@ -147,5 +149,5 @@ def test_poisson():
 
     
 if __name__ == "__main__":
-    test_poisson()
-    test_nb()
+    #test_poisson()
+    #test_nb()

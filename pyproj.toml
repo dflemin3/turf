@@ -42,3 +42,9 @@ Homepage = 'https://github.com/dflemin3/turf'
 Issues = 'https://github.com/dflemin3/turf/issues'
 Documentation = "https://github.com/dflemin3/turf/blob/main/docs/whitepaper.md"
 Repository = "https://github.com/dflemin3/turf.git"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["turf/data"]
