@@ -28,6 +28,6 @@ jobs:
       - name: Install dependencies  
         run: python -m pip install -U pytest coverage
       - name: Test with pytest  
-        run: coverage run -m pytest turf/tests --pyargs --doctest-modules turf  
+        run: coverage run -m pytest -v -s
       - name: Generate Coverage Report  
         run: coverage report -m

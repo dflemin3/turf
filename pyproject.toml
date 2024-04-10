@@ -47,9 +47,9 @@ package-data = {"turf.data" = ["*.nc", "*.csv"]}
 readme = {file = ["README.md"]}
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q"
+minversion = "1.0"
 testpaths = ["tests"]
+python_files = ["tests/test_*.py"]
 
 [tool.coverage.run]
 branch = true
