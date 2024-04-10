@@ -4,11 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turf"
-dynamic = ["version"]
+dynamic = ["version", "readme"]
 authors = [{name = "David P. Fleming", email = "dpfleming91@gmail.com" }]
 maintainers = [{name = "David P. Fleming", email = "dpfleming91@gmail.com" }]
 description = "NFL and NHL Hierarchical Monte Carlo inference and game simulation"
-readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
 classifiers = [
@@ -28,6 +27,7 @@ dependencies = ['numpy',
                 'pytest',
                 'coverage']
 keywords = ['hierarchical', 'bayesian', 'football', 'hockey', 'inference']
+package_dir = 'src/turf'
 
 [project.optional-dependencies]
 vis = ['matplotlib',
@@ -36,6 +36,7 @@ vis = ['matplotlib',
 
 [tool.setuptools.dynamic]
 version = {attr = "turf.__version__"}
+readme = {file = ["README.md"]}
 
 [project.urls]
 Homepage = 'https://github.com/dflemin3/turf'
@@ -48,3 +49,26 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["turf/data"]
+
+[tool.setuptools.package-data]
+"turf.data" = ["*.nc", "*.csv"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+exclude_also = ["def __repr__",
+                "if __name__ == .__main__.:",
+                "def pull_nfl_full_season_games_raw",
+                "def pull_nhl_full_season_games_raw",
+                "def save",
+                "raise NotImplementedError"]
+ignore_errors = true
+
+[tool.coverage.html]
+directory = "coverage_html_report"
