@@ -26,12 +26,8 @@ jobs:
         with:  
           python-version: ${{ matrix.python-version }}  
       - name: Install dependencies  
-        run: |  
-          python -m pip install --upgrade pip  
-          python -m pip install .
+        run: python -m pip install -U pytest coverage
       - name: Test with pytest  
-        run: |  
-          coverage run -m pytest --pyargs --doctest-modules turf  
+        run: coverage run -m pytest turf/tests --pyargs --doctest-modules turf  
       - name: Generate Coverage Report  
-        run: |  
-          coverage report -m
+        run: coverage report -m

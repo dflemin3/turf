@@ -22,13 +22,13 @@ Installation
 Clone the repository then type
 ```bash
 cd turf
-python -m pip install .
+python3 -m pip install .
 ```
 to install.
 
 If you want run the example notebooks, run
 ```bash
-pip install .[vis]
+python3 -m pip install .[vis]
 ```
 to install with visualization support from `matplotlib`, `arviz`, and `seaborn`.
 

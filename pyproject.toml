@@ -1,21 +1,21 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "turf"
-dynamic = ["version", "readme"]
-authors = [{name = "David P. Fleming", email = "dpfleming91@gmail.com" }]
-maintainers = [{name = "David P. Fleming", email = "dpfleming91@gmail.com" }]
+version = "1.0.0"
+dynamic = ["readme"]
+authors = [{name = "David P. Fleming", email = "dpfleming91@gmail.com"}]
+maintainers = [{name = "David P. Fleming", email = "dpfleming91@gmail.com"}]
 description = "NFL and NHL Hierarchical Monte Carlo inference and game simulation"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
-classifiers = [
-   'Development Status :: 5 - Production/Stable',
-   'Programming Language :: Python :: 3.10',
-   'Programming Language :: Python :: 3.11',
-   'License :: OSI Approved :: MIT License',
-   'Operating System :: OS Independent']
+classifiers = ['Development Status :: 5 - Production/Stable',
+               'Programming Language :: Python :: 3.10',
+               'Programming Language :: Python :: 3.11',
+               'License :: OSI Approved :: MIT License',
+               'Operating System :: OS Independent']
 dependencies = ['numpy',
                 'pandas',
                 'pymc>4',
@@ -27,16 +27,11 @@ dependencies = ['numpy',
                 'pytest',
                 'coverage']
 keywords = ['hierarchical', 'bayesian', 'football', 'hockey', 'inference']
-package_dir = 'src/turf'
 
 [project.optional-dependencies]
 vis = ['matplotlib',
        'arviz',
        'seaborn']
-
-[tool.setuptools.dynamic]
-version = {attr = "turf.__version__"}
-readme = {file = ["README.md"]}
 
 [project.urls]
 Homepage = 'https://github.com/dflemin3/turf'
@@ -46,12 +41,10 @@ Repository = "https://github.com/dflemin3/turf.git"
 
 [tool.setuptools]
 include-package-data = true
+package-data = {"turf.data" = ["*.nc", "*.csv"]}
 
-[tool.setuptools.packages.find]
-where = ["turf/data"]
-
-[tool.setuptools.package-data]
-"turf.data" = ["*.nc", "*.csv"]
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"]}
 
 [tool.pytest.ini_options]
 minversion = "6.0"
