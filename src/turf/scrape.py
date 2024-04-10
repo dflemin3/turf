@@ -4,9 +4,10 @@
 ---------------------------------------------
 
 Functions for scraping NFL game results from pro-football-reference.com
-and NHL results from hockey-reference.com
+and NHL results from hockey-reference.com. Please follow their robots.txt
+and all scraping restrictions listed on the respective websites.
 
-@author: David Fleming, 2023
+@author: David Fleming, 2024
 
 """
 
@@ -15,8 +16,7 @@ import numpy as  np
 from . import utils as ut
 
 
-__all__ = ["pull_nfl_full_season_games_raw", "NFLSeason", 
-           "pull_nhl_full_season_games_raw", "NHLSeason"]
+__all__ = []
 
 
 ################################################################################

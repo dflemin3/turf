@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "turf"
+dynamic = ["version"]
+authors = [{name = "David P. Fleming", email = "dpfleming91@gmail.com" }]
+maintainers = [{name = "David P. Fleming", email = "dpfleming91@gmail.com" }]
+description = "NFL and NHL Hierarchical Monte Carlo inference and game simulation"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+classifiers = [
+   'Development Status :: 5 - Production/Stable',
+   'Programming Language :: Python :: 3.10',
+   'Programming Language :: Python :: 3.11',
+   'License :: OSI Approved :: MIT License',
+   'Operating System :: OS Independent']
+dependencies = ['numpy',
+                'pandas',
+                'pymc>4',
+                'scipy',
+                'mechanicalsoup',
+                'beautifulsoup4',
+                'lxml',
+                'xarray',
+                'pytest',
+                'coverage']
+keywords = ['hierarchical', 'bayesian', 'football', 'hockey', 'inference']
+
+[project.optional-dependencies]
+vis = ['matplotlib',
+       'arviz',
+       'seaborn']
+
+[tool.setuptools.dynamic]
+version = {attr = "turf.__version__"}
+
+[project.urls]
+Homepage = 'https://github.com/dflemin3/turf'
+Issues = 'https://github.com/dflemin3/turf/issues'
+Documentation = "https://github.com/dflemin3/turf/blob/main/docs/whitepaper.md"
+Repository = "https://github.com/dflemin3/turf.git"

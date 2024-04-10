@@ -26,6 +26,12 @@ python -m pip install .
 ```
 to install.
 
+If you want run the example notebooks, run
+```bash
+pip install .[vis]
+```
+to install with visualization support from `matplotlib`, `arviz`, and `seaborn`.
+
 Simple example
 ==============
 

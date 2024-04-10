@@ -5,7 +5,7 @@
 
 Functions and classes for hierarchical inference of NFL and NHL games
 
-@author: David Fleming, 2023
+@author: David Fleming, 2024
 
 """
 
@@ -20,8 +20,7 @@ from . import scrape
 from . import utils as ut
 
 
-__all__ = ["IndependentPoisson", "CorrelatedPoisson", "IndependentNegativeBinomial",
-           "IndependentNegativeBinomialMixture"]
+__all__ = []
 
 
 ################################################################################

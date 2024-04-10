@@ -6,15 +6,14 @@
 Utility functions for internal functions and general data processing, e.g.
 mapping team names to their standard abbreviations.
 
-@author: David Fleming, 2023
+@author: David Fleming, 2024
 """
 
 
 import pandas as pd
 
 
-__all__ = ["_nfl_name_conv", "_hex_color_nfl", "_hex_color_nhl",
-           "check_model_inference"]
+__all__ = []
 
 
 ################################################################################
