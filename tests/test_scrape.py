@@ -6,8 +6,6 @@ Test turf data scraping functions
 
 @author: David Fleming, 2024
 
-TODO - fix data loading
-
 """
 
 import numpy as np
