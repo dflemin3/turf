@@ -370,15 +370,15 @@ class IndependentPoisson(_GenericModel):
         with pm.Model(coords=self._coords) as self.model:
 
             # Constant, observed data
-            home_team = pm.Data("home_team",
-                                self._played_home_idx,
-                                dims="games", mutable=False)
-            away_team = pm.Data("away_team",
-                                self._played_away_idx,
-                                dims="games", mutable=False)
-            obs_pts = pm.Data("obs_pts",
-                              self.season.played_df[["home_pts", "away_pts"]],
-                              dims=("games", "att_def"), mutable=False)
+            home_team = pm.ConstantData("home_team",
+                                        self._played_home_idx,
+                                        dims="games")
+            away_team = pm.ConstantData("away_team",
+                                        self._played_away_idx,
+                                        dims="games")
+            obs_pts = pm.ConstantData("obs_pts",
+                                      self.season.played_df[["home_pts", "away_pts"]],
+                                      dims=("games", "att_def"))
 
             ### Initialize standard hierarchical model parameters
 
@@ -579,15 +579,15 @@ class CorrelatedPoisson(IndependentPoisson):
         with pm.Model(coords=self._coords) as self.model:
 
             # Constant, observed data
-            home_team = pm.Data("home_team",
+            home_team = pm.ConstantData("home_team",
                                 self._played_home_idx,
-                                dims="games", mutable=False)
-            away_team = pm.Data("away_team",
+                                dims="games")
+            away_team = pm.ConstantData("away_team",
                                 self._played_away_idx,
-                                dims="games", mutable=False)
-            obs_pts = pm.Data("obs_pts",
-                              self.season.played_df[["home_pts", "away_pts"]],
-                              dims=("games", "att_def"), mutable=False)
+                                dims="games")
+            obs_pts = pm.ConstantData("obs_pts",
+                              self.season.played_df[["home_pts", "away_pts"]].values,
+                              dims=("games", "att_def"))
 
             ### Initialize hierarchical model parameters
 
@@ -673,15 +673,15 @@ class IndependentNegativeBinomial(_GenericModel):
         with pm.Model(coords=self._coords) as self.model:
 
             # Constant, observed data
-            home_team = pm.Data("home_team",
-                                self._played_home_idx,
-                                dims="games", mutable=False)
-            away_team = pm.Data("away_team",
-                                self._played_away_idx,
-                                dims="games", mutable=False)
-            obs_pts = pm.Data("obs_pts",
-                              self.season.played_df[["home_pts", "away_pts"]],
-                              dims=("games", "att_def"), mutable=False)
+            home_team = pm.ConstantData("home_team",
+                                        self._played_home_idx,
+                                        dims="games")
+            away_team = pm.ConstantData("away_team",
+                                        self._played_away_idx,
+                                        dims="games")
+            obs_pts = pm.ConstantData("obs_pts",
+                                      self.season.played_df[["home_pts", "away_pts"]].values,
+                                      dims=("games", "att_def"))
 
             ### Initialize standard hierarchical model parameters
 
@@ -892,15 +892,15 @@ class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
         with pm.Model(coords=self._coords) as self.model:
 
             # Constant, observed data
-            home_team = pm.Data("home_team",
+            home_team = pm.ConstantData("home_team",
                                 self._played_home_idx,
-                                dims="games", mutable=False)
-            away_team = pm.Data("away_team",
+                                dims="games")
+            away_team = pm.ConstantData("away_team",
                                 self._played_away_idx,
-                                dims="games", mutable=False)
-            obs_pts = pm.Data("obs_pts",
-                              self.season.played_df[["home_pts", "away_pts"]],
-                              dims=("games", "att_def"), mutable=False)
+                                dims="games")
+            obs_pts = pm.ConstantData("obs_pts",
+                              self.season.played_df[["home_pts", "away_pts"]].values,
+                              dims=("games", "att_def"))
 
             ### Initialize standard hierarchical model parameters
 

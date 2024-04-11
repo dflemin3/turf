@@ -19,18 +19,16 @@ classifiers = ['Development Status :: 4 - Beta',
 dependencies = ['numpy',
                 'pandas',
                 'pymc>4',
-                'scipy',
+                'arviz',
                 'mechanicalsoup',
                 'beautifulsoup4',
                 'lxml',
-                'xarray',
                 'pytest',
                 'coverage']
-keywords = ['hierarchical', 'bayesian', 'football', 'hockey', 'inference']
+keywords = ['hierarchical', 'bayesian', 'football', 'hockey', 'inference', 'monte carlo', 'simulation']
 
 [project.optional-dependencies]
 vis = ['matplotlib',
-       'arviz',
        'seaborn']
 
 [project.urls]
