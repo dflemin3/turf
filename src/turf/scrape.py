@@ -147,7 +147,8 @@ class NHLSeason(_GenericSeason):
     and results
     """
 
-    def __init__(self, year : int=2022, path : str=None) -> None: 
+    def __init__(self, year : int=2022, path : str=None,
+                 regulation_adjustment : bool=True) -> None: 
         """
         Season object initialization function that pulls data for the given year
         from https://www.hockey-reference.com/leagues/NHL_{year+1}_games.html and
@@ -162,6 +163,11 @@ class NHLSeason(_GenericSeason):
         path : str (optional)
             Path to pre-cached data to build Season object. If this is provided,
             this file is loaded and used instead of scraping the data.
+        regulation_adjustment : bool (optional)
+            Whether or not to adjust scores to reflect regulation outcomes, that is,
+            if a game went to OT and team x won 5-4, the scores would be updated to
+            4-4. This is useful if you want your model to purely reflect regulation outcomes.
+            Defaults to True
         """
 
         # Init _GenericModel super (builds model and does everything else)
@@ -170,9 +176,21 @@ class NHLSeason(_GenericSeason):
        # Load data from local path
         if self.path is not None:
             self.raw_season_df = pd.read_csv(self.path)
-        # Pull raw season data from pro-football-reference.com
+        # Pull raw season data from hockey-reference.com
         else:
             self.raw_season_df = pull_nhl_full_season_games_raw(year=self.year)
+
+        # Adjust score to regulation outcomes?
+        if regulation_adjustment:
+            
+            # Get OT outcomes
+            mask = (self.raw_season_df['ot_indicator'] == 'OT')
+            away = self.raw_season_df.loc[mask, 'away_pts'].values.squeeze()
+            home = self.raw_season_df.loc[mask, 'home_pts'].values.squeeze()
+            
+            # Find and QC regulation score
+            score = np.max([np.min([away, home], axis=0), np.ones(len(away))], axis=0)
+            self.raw_season_df.loc[mask, ['away_pts', 'home_pts']] = np.vstack([score, score]).T
 
         # First save the full season schedule of released games into a separate df
         self.full_schedule = self.raw_season_df[['Date', 'away_team', 'home_team']].copy()
