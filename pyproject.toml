@@ -46,7 +46,6 @@ readme = {file = ["README.md"]}
 
 [tool.pytest.ini_options]
 minversion = "0.0"
-testpaths = ["tests"]
 python_files = ["tests/test_*.py"]
 
 [tool.coverage.run]
