@@ -91,7 +91,8 @@ class NFLSeason(_GenericSeason):
     and results
     """
 
-    def __init__(self, year : int=2022, path : str=None) -> None: 
+    def __init__(self, year : int=2022, 
+                 path : Union[str | pd.DataFrame]=None) -> None: 
         """
         Season object initialization function that pulls data for the given year
         from https://www.pro-football-reference.com/years/{year}/games.htm and
@@ -103,17 +104,23 @@ class NFLSeason(_GenericSeason):
         year : int (optional)
             NFL season such that year corresponds to the year-year+1 NFL season.
             Defaults to 2022 for the 2022-2023 NFL season
-        path : str (optional)
+        path : str | pd.DataFrame (optional)
             Path to pre-cached data to build Season object. If this is provided,
-            this file is loaded and used instead of scraping the data.
+            this file is loaded and used instead of scraping the data. Or, you 
+            could pre-load the data on your own and pass a dataframe.
         """
 
         # Init _GenericModel super (builds model and does everything else)
         super().__init__(year=year, path=path)
 
-       # Load data from local path
+       # Load data from local path or copy df
         if self.path is not None:
-            self.raw_season_df = pd.read_csv(self.path)
+            if isinstance(self.path, str):
+                self.raw_season_df = pd.read_csv(self.path)
+            elif isinstance(self.path, pd.DataFrame):
+                self.raw_season_df = self.path.copy()
+            else:
+                raise ValueError("Pass either pass to csv or dataframe")
 
         # Pull raw season data from pro-football-reference.com
         else:
@@ -147,7 +154,8 @@ class NHLSeason(_GenericSeason):
     and results
     """
 
-    def __init__(self, year : int=2022, path : str=None,
+    def __init__(self, year : int=2022, , 
+                 path : Union[str | pd.DataFrame]=None
                  regulation_adjustment : bool=True) -> None: 
         """
         Season object initialization function that pulls data for the given year
@@ -160,9 +168,10 @@ class NHLSeason(_GenericSeason):
         year : int (optional)
             NHL season such that year corresponds to the year-year+1 NFL season.
             Defaults to 2022 for the 2022-2023 NHL season
-        path : str (optional)
+        path : str | pd.DataFrame (optional)
             Path to pre-cached data to build Season object. If this is provided,
-            this file is loaded and used instead of scraping the data.
+            this file is loaded and used instead of scraping the data. Or, you 
+            could pre-load the data on your own and pass a dataframe.
         regulation_adjustment : bool (optional)
             Whether or not to adjust scores to reflect regulation outcomes, that is,
             if a game went to OT and team x won 5-4, the scores would be updated to
@@ -175,7 +184,12 @@ class NHLSeason(_GenericSeason):
 
        # Load data from local path
         if self.path is not None:
-            self.raw_season_df = pd.read_csv(self.path)
+            if isinstance(self.path, str):
+                self.raw_season_df = pd.read_csv(self.path)
+            elif isinstance(self.path, pd.DataFrame):
+                self.raw_season_df = self.path.copy()
+            else:
+                raise ValueError("Pass either pass to csv or dataframe")
         # Pull raw season data from hockey-reference.com
         else:
             self.raw_season_df = pull_nhl_full_season_games_raw(year=self.year)
