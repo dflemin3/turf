@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turf"
-version = "1.0.0"
+version = "0.9.0"
 dynamic = ["readme"]
 authors = [{name = "David P. Fleming", email = "dpfleming91@gmail.com"}]
 maintainers = [{name = "David P. Fleming", email = "dpfleming91@gmail.com"}]
 description = "NFL and NHL Hierarchical Monte Carlo inference and game simulation"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
-classifiers = ['Development Status :: 5 - Production/Stable',
+classifiers = ['Development Status :: 4 - Beta',
                'Programming Language :: Python :: 3.10',
                'Programming Language :: Python :: 3.11',
                'License :: OSI Approved :: MIT License',
@@ -47,7 +47,7 @@ package-data = {"turf.data" = ["*.nc", "*.csv"]}
 readme = {file = ["README.md"]}
 
 [tool.pytest.ini_options]
-minversion = "1.0"
+minversion = "0.0"
 testpaths = ["tests"]
 python_files = ["tests/test_*.py"]
 
