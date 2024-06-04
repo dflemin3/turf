@@ -249,15 +249,14 @@ def pull_nfl_full_season_games_raw(year : int=2022) -> pd.DataFrame:
     url = f"https://www.pro-football-reference.com/years/{year}/games.htm"
 
     # Download data
-    df = pd.read_html(url, parse_dates=True, attrs={'id': 'games'},
+    df = pd.read_html(url, parse_dates=False, attrs={'id': 'games'},
                       header=0, index_col=0)[0]
 
     # Drop rows that are simply dividers
-    df.drop("Week", inplace=True)
-    try:
-        df.drop("Playoffs", inplace=True)
-    except KeyError:
-        pass
+    df = df[~df['Date'].isin(['Date', 'Playoffs', 'Week'])].copy()
+
+    # Parse dates
+    df['Date'] = df['Date'].map(lambda x : pd.to_datetime(x, format='%Y-%m-%d'))
 
     # Now reset index so week is a column
     df.reset_index(drop=False, inplace=True)
@@ -272,23 +271,30 @@ def pull_nfl_full_season_games_raw(year : int=2022) -> pd.DataFrame:
                            result_type='expand').rename(columns={0 : "away_team",
                                                                  1 : "away_pts",
                                                                  2 : "home_team",
-                                                                 3 : "home_pts"})
+                                                                 3 : "home_pts",
+                                                                 4 : "tie"})
     # Stack back onto dataset
     df = pd.concat([df, new_cols_df], axis='columns')
 
     # Drop columns we do not need for data processing or inference
     df = df[["Date", "Week", "home_team", "home_pts", "away_team",
-             "away_pts"]].copy()
+             "away_pts", "tie"]].copy()
 
     # Set dtype
     df["Week"] = df["Week"].astype(str)
 
-    # Try dropping a dummy divider row
-    df = df[df["Date"] != "Playoffs"].copy()
-
-    # Map the names to standard abbreviations
+    # Map the names to standard internal abbreviations
     df["away_team"] = df["away_team"].map(ut._nfl_name_conv)
     df["home_team"] = df["home_team"].map(ut._nfl_name_conv)
+
+    # Correct datatypes
+    df = df.astype({"Date" : object,
+                    "Week" : object,
+                    "home_team" : object,
+                    "home_pts" : int,
+                    "away_team" : object,
+                    "away_pts" : int,
+                    "tie" : bool})
 
     return df
 

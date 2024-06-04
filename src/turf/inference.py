@@ -64,7 +64,7 @@ class _GenericModel(object):
 
         # Load trace?
         self.path = path
-        if path is not None:
+        if self.path is not None:
             # Load trace
             self.trace_ = az.from_netcdf(self.path)
 
@@ -97,6 +97,7 @@ class _GenericModel(object):
         self._played_away_idx = away_idx
         self._played_teams = teams
         self._coords = coords
+        self._team_to_idx = {team : idx for idx, team in enumerate(teams)}
 
 
     def build_model(self) -> None:
@@ -118,8 +119,8 @@ class _GenericModel(object):
         raise NotImplementedError()
 
 
-    def simulate_games(self, home_team : str,
-                       away_team : str, n : int=100, seed : int=None, neutral_site : bool=False,
+    def simulate_games(self, home_team : str, away_team : str, n : int=100, 
+                       seed : int=None, neutral_site : bool=False,
                        rng : np.random.Generator=None, tie_breaker_pt : bool=False) -> None:
         """
         Simulate an game where away_team plays at home_team and trace
@@ -219,9 +220,10 @@ class _GenericModel(object):
                                     random_seed=seed, chains=self.n_chains_, cores=self.n_chains_,
                                     discard_tuned_samples=True, target_accept=target_accept,
                                     idata_kwargs=idata_kwargs)
-    
 
-    def sos(self, n : int=100, mode='full') -> Union[np.ndarray, np.ndarray]:
+    
+    def sos(self, n : int=100, mode='full', seed : int=None, 
+            team_names : list=None) -> Union[np.ndarray, np.ndarray]:
         """
         Simulate season results to estimate a team's strength of schedule 
         as the win percentage of the median team playing the same schedule.
@@ -233,6 +235,11 @@ class _GenericModel(object):
         mode : str (optional)
             Estimate SoS for the 'full', 'played', or 'unplayed' games 
             of the season for each team
+        seed : int (optional)
+            RNG seed. Defaults to None.
+        team_names : list of str (optional)
+            List of valid team names to simulate. Defaults to None, which
+            then simulates the season for all teams in the trace.
 
         Returns
         -------
@@ -257,7 +264,8 @@ class _GenericModel(object):
             raise RuntimeError(err_msg)
 
         # Extract team names from trace
-        team_names = self.trace_.posterior.coords['teams'].values
+        if team_names is not None:
+            team_names = self.trace_.posterior.coords['teams'].values
         sos = np.zeros(len(team_names))
 
         # Simulate winning percentage of median team for given team's schedule
@@ -276,18 +284,118 @@ class _GenericModel(object):
             for jj in range(len(home_games)):
             
                 # Simulate games
-                _, _, home_win, _ = self.simulate_game('median', home_games.iloc[jj]['away_team'], n=n, seed=None)
+                _, _, home_win, _ = self.simulate_game('median', 
+                                                       home_games.iloc[jj]['away_team'], n=n, seed=seed)
                 results.append(np.mean(home_win))
             
             # Then play games where team is away
             for jj in range(len(away_games)):
             
                 # Simulate games
-                _, _, home_win, _ = self.simulate_game(away_games.iloc[jj]['home_team'], 'median', n=n, seed=None)
+                _, _, home_win, _ = self.simulate_game(away_games.iloc[jj]['home_team'],
+                                                       'median', n=n, seed=seed)
                 results.append(1 - np.mean(home_win))
         
             # Cache results for team
             sos[ii] = np.mean(results)
+
+        return sos, team_names
+    
+
+    def simulation_season(self, n : int=100, mode : str='full',
+                          seed : int=None, team_names : list=None) -> dict:
+        """
+        Simulate {full, played, unplayed} season results for all teams
+        in team_names (defaults to all teams)
+
+        Parameters
+        ----------
+        n : int (optional)
+            Number of times to simulate each game. Defaults to 100.
+        mode : str (optional)
+            Simulate the 'full', 'played', or 'unplayed' games 
+            of the season for each team
+        seed : int (optional)
+            RNG seed. Defaults to None.
+        team_names : list of str (optional)
+            List of valid team names to simulate. Defaults to None, which
+            then simulates the season for all teams in the trace.
+
+        Returns
+        -------
+        results : dict
+            dictionary where keys correspond to team_home and team_away for each
+            team. results['team_home'] the stores, for example, the (n_home x n)
+            array of home game win results, n for each match.
+        """
+
+        # Assert model is fit with new util fn
+        assert ut.check_model_inference(self.model), "model must be ran via model.run_inference() prior to simulations"
+
+        # Extract df of all games or remaining games
+        if mode == 'full':
+            game_df = self.season.full_schedule
+        elif mode == 'played':
+            game_df = self.season.played_df
+        elif mode == 'unplayed':
+            game_df = self.season.unplayed_df
+        else:
+            err_msg = "mode must be one of 'full', 'played', or 'unplayed'. See docstring for more info"
+            raise RuntimeError(err_msg)
+
+        # Extract team names from trace?
+        if team_names is None:
+            team_names = self.trace_.posterior.coords['teams'].values
+        
+        # Holders for results
+        results = {}
+
+        # Total, home, and away SOS - nan for all elements at first
+        sos = np.zeros(len(team_names),3) * np.nan
+
+        # Simulate winning percentage of median team for given team's schedule
+        for ii, team in enumerate(team_names):
+        
+            # Games where team is home team
+            home_mask = (game_df['home_team'] == team)
+            home_games = game_df[home_mask]
+            n_home = len(home_games)
+            
+            # Games where team is away team
+            away_mask = (game_df['away_team'] == team)
+            away_games = game_df[away_mask]
+            n_away = len(away_games)
+            
+            # First play games where team is at home
+            if n_home > 0:
+                home_results = np.zeros(n_home)
+                for jj in range(n_home):
+                
+                    # Simulate median team playing team at home
+                    home_pts, away_pts, home_win, tie = self.simulate_game(home_games.iloc[jj]['home_team'], 
+                                                                           home_games.iloc[jj]['away_team'], n=n, seed=seed)
+                    home_results[jj] = np.mean(home_win)
+
+                # Estimate home strength of schedule
+                sos[ii,1] = np.mean(home_results[jj])
+            
+            # Then play games where team is away
+            if n_away > 0:
+                away_results = np.zeros(n_away)
+                for jj in range(n_away):
+                
+                    # Simulate games
+                    home_pts, away_pts, home_win, tie = self.simulate_game(away_games.iloc[jj]['home_team'],
+                                                           away_games.iloc[jj]['home_team'],
+                                                           'median', n=n, seed=seed)
+                    away_results[jj] = 1 - np.mean(home_win)
+
+                # Estimate away strength of schedule
+                sos[ii,2] = np.mean(away_results[jj])
+        
+            # Cache results for team - total season, away, home
+            sos[ii,0] = sos[ii,1] * (n_home / (n_home + n_away)) + sos[ii,2] * (n_away / (n_home + n_away))
+            
 
         return sos, team_names
 
@@ -370,12 +478,14 @@ class IndependentPoisson(_GenericModel):
         with pm.Model(coords=self._coords) as self.model:
 
             # Constant, observed data
-            home_team = pm.ConstantData("home_team",
-                                        self._played_home_idx,
-                                        dims="games")
-            away_team = pm.ConstantData("away_team",
-                                        self._played_away_idx,
-                                        dims="games")
+            home_team = pm.Data("home_team",
+                                self._played_home_idx,
+                                dims="games",
+                                mutable=True)
+            away_team = pm.Data("away_team",
+                                self._played_away_idx,
+                                dims="games",
+                                mutable=True)
             obs_pts = pm.ConstantData("obs_pts",
                                       self.season.played_df[["home_pts", "away_pts"]],
                                       dims=("games", "att_def"))
@@ -579,12 +689,14 @@ class CorrelatedPoisson(IndependentPoisson):
         with pm.Model(coords=self._coords) as self.model:
 
             # Constant, observed data
-            home_team = pm.ConstantData("home_team",
+            home_team = pm.Data("home_team",
                                 self._played_home_idx,
-                                dims="games")
-            away_team = pm.ConstantData("away_team",
+                                dims="games",
+                                mutable=True)
+            away_team = pm.Data("away_team",
                                 self._played_away_idx,
-                                dims="games")
+                                dims="games",
+                                mutable=True)
             obs_pts = pm.ConstantData("obs_pts",
                               self.season.played_df[["home_pts", "away_pts"]].values,
                               dims=("games", "att_def"))
@@ -673,12 +785,14 @@ class IndependentNegativeBinomial(_GenericModel):
         with pm.Model(coords=self._coords) as self.model:
 
             # Constant, observed data
-            home_team = pm.ConstantData("home_team",
-                                        self._played_home_idx,
-                                        dims="games")
-            away_team = pm.ConstantData("away_team",
-                                        self._played_away_idx,
-                                        dims="games")
+            home_team = pm.Data("home_team",
+                                self._played_home_idx,
+                                dims="games",
+                                mutable=True)
+            away_team = pm.Data("away_team",
+                                self._played_away_idx,
+                                dims="games",
+                                mutable=True)
             obs_pts = pm.ConstantData("obs_pts",
                                       self.season.played_df[["home_pts", "away_pts"]].values,
                                       dims=("games", "att_def"))
@@ -892,12 +1006,14 @@ class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
         with pm.Model(coords=self._coords) as self.model:
 
             # Constant, observed data
-            home_team = pm.ConstantData("home_team",
+            home_team = pm.Data("home_team",
                                 self._played_home_idx,
-                                dims="games")
-            away_team = pm.ConstantData("away_team",
+                                dims="games",
+                                mutable=True)
+            away_team = pm.Data("away_team",
                                 self._played_away_idx,
-                                dims="games")
+                                dims="games",
+                                mutable=True)
             obs_pts = pm.ConstantData("obs_pts",
                               self.season.played_df[["home_pts", "away_pts"]].values,
                               dims=("games", "att_def"))

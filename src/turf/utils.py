@@ -238,7 +238,7 @@ _hex_color_nhl = {"ANA_0" : "#89734C",
                   "WPG_1" : "#004C97"}
 
 
-def __nfl_home_away(x : pd.Series) -> str | int | str | int:
+def __nfl_home_away(x : pd.Series) -> str | int | str | int | bool:
     """
     Internal utility function to determine which team is the home/away team
     from a raw pull_season df and create team and score mappings accordingly
@@ -248,18 +248,24 @@ def __nfl_home_away(x : pd.Series) -> str | int | str | int:
     # Winning team was away
     if x["away_indicator"] == "@":
         away_team = x["Winner/tie"]
-        away_pts = x["PtsW"]
+        away_pts = x["Pts"]
 
         home_team = x["Loser/tie"]
-        home_pts = x["PtsL"]
+        home_pts = x["Pts.1"]
     else:
         home_team = x["Winner/tie"]
-        home_pts = x["PtsW"]
+        home_pts = x["Pts"]
 
         away_team = x["Loser/tie"]
-        away_pts = x["PtsL"]
+        away_pts = x["Pts.1"]
 
-    return away_team, away_pts, home_team, home_pts
+    # Did the game end in a tie?
+    if x["Pts"] == x["Pts.1"]:
+        tie = True
+    else:
+        tie = False
+
+    return away_team, away_pts, home_team, home_pts, tie
 
 
 def _outcome(home_pts : int, away_pts : int) -> bool | bool:
