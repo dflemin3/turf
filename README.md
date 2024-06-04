@@ -7,7 +7,7 @@ Overview
 National Football League (NFL) and Nation Hockey League (NHL) games. These models are inspired
 by the framework introduced in [Baio and Blangiardo (2010)](https://doi.org/10.1080/02664760802684177).
 
-Tested for Python 3.10 and 3.11.
+Tested for Python 3.10, 3.11, and 3.12.
 
 <p>
 <a href="https://github.com/dflemin3/turf">
@@ -22,13 +22,13 @@ Installation
 Clone the repository then type
 ```bash
 cd turf
-python3 -m pip install .
+pip install .
 ```
 to install.
 
 If you want run the example notebooks, run
 ```bash
-python3 -m pip install .[vis]
+ip install .[vis]
 ```
 to install with visualization support from `matplotlib`, `arviz`, and `seaborn`.
 
