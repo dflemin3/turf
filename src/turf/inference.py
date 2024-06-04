@@ -480,15 +480,13 @@ class IndependentPoisson(_GenericModel):
             # Constant, observed data
             home_team = pm.Data("home_team",
                                 self._played_home_idx,
-                                dims="games",
-                                mutable=True)
+                                dims="games")
             away_team = pm.Data("away_team",
                                 self._played_away_idx,
-                                dims="games",
-                                mutable=True)
-            obs_pts = pm.ConstantData("obs_pts",
-                                      self.season.played_df[["home_pts", "away_pts"]],
-                                      dims=("games", "att_def"))
+                                dims="games")
+            obs_pts = pm.Data("obs_pts",
+                              self.season.played_df[["home_pts", "away_pts"]],
+                              dims=("games", "att_def"))
 
             ### Initialize standard hierarchical model parameters
 
@@ -691,13 +689,11 @@ class CorrelatedPoisson(IndependentPoisson):
             # Constant, observed data
             home_team = pm.Data("home_team",
                                 self._played_home_idx,
-                                dims="games",
-                                mutable=True)
+                                dims="games")
             away_team = pm.Data("away_team",
                                 self._played_away_idx,
-                                dims="games",
-                                mutable=True)
-            obs_pts = pm.ConstantData("obs_pts",
+                                dims="games")
+            obs_pts = pm.Data("obs_pts",
                               self.season.played_df[["home_pts", "away_pts"]].values,
                               dims=("games", "att_def"))
 
@@ -787,15 +783,13 @@ class IndependentNegativeBinomial(_GenericModel):
             # Constant, observed data
             home_team = pm.Data("home_team",
                                 self._played_home_idx,
-                                dims="games",
-                                mutable=True)
+                                dims="games")
             away_team = pm.Data("away_team",
                                 self._played_away_idx,
-                                dims="games",
-                                mutable=True)
-            obs_pts = pm.ConstantData("obs_pts",
-                                      self.season.played_df[["home_pts", "away_pts"]].values,
-                                      dims=("games", "att_def"))
+                                dims="games")
+            obs_pts = pm.Data("obs_pts",
+                              self.season.played_df[["home_pts", "away_pts"]].values,
+                              dims=("games", "att_def"))
 
             ### Initialize standard hierarchical model parameters
 
@@ -1008,13 +1002,11 @@ class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
             # Constant, observed data
             home_team = pm.Data("home_team",
                                 self._played_home_idx,
-                                dims="games",
-                                mutable=True)
+                                dims="games")
             away_team = pm.Data("away_team",
                                 self._played_away_idx,
-                                dims="games",
-                                mutable=True)
-            obs_pts = pm.ConstantData("obs_pts",
+                                dims="games")
+            obs_pts = pm.Data("obs_pts",
                               self.season.played_df[["home_pts", "away_pts"]].values,
                               dims=("games", "att_def"))
 

@@ -18,7 +18,7 @@ classifiers = ['Development Status :: 4 - Beta',
                'Operating System :: OS Independent']
 dependencies = ['numpy',
                 'pandas',
-                'pymc>4',
+                'pymc>5',
                 'arviz',
                 'mechanicalsoup',
                 'beautifulsoup4',
