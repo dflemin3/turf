@@ -7,6 +7,8 @@ on:
       - main
 
   pull_request:
+    branches:
+      - main
   
 concurrency:
   group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
@@ -31,6 +33,6 @@ jobs:
           pip install .
           python -m pip install -U pytest coverage
       - name: Test with pytest  
-        run: pytest -v -s
+        run: coverage run -m pytest -v -s
       - name: Generate Coverage Report  
         run: coverage report -m
