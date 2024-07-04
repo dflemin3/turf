@@ -58,7 +58,8 @@ exclude_also = ["def __repr__",
                 "def pull_nfl_full_season_games_raw",
                 "def pull_nhl_full_season_games_raw",
                 "def save",
-                "raise NotImplementedError"]
+                "raise NotImplementedError",
+                "def test*()"]
 ignore_errors = true
 
 [tool.coverage.html]
