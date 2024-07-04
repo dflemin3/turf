@@ -13,7 +13,6 @@ and all scraping restrictions listed on the respective websites.
 
 import pandas as pd
 import numpy as  np
-from typing import Union
 from . import utils as ut
 
 

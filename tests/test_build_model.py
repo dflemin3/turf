@@ -35,6 +35,7 @@ def test_build_models():
     model1 = inference.CorrelatedPoisson(season)
     model2 = inference.IndependentNegativeBinomial(season)
     model3 = inference.IndependentNegativeBinomialMixture(season)
+    print(model0, model1, model2, model3)
 
 
 if __name__ == "__main__":

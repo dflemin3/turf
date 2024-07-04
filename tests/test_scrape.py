@@ -9,7 +9,6 @@ Test turf data scraping functions
 """
 
 import numpy as np
-import pandas as pd
 import os
 from importlib import resources
 from turf import scrape
