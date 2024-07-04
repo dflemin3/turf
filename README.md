@@ -26,11 +26,11 @@ pip install .
 ```
 to install.
 
-If you want run the example notebooks, run
+If you want run the example notebooks, unit tests, and more run
 ```bash
-ip install .[vis]
+pip install .[opp]
 ```
-to install with visualization support from `matplotlib`, `arviz`, and `seaborn`.
+to install with visualization support from `matplotlib`, `arviz`, `seaborn`. `pytest`, `coverage`, and `ruff` for linting.
 
 Simple example
 ==============
