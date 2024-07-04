@@ -12,7 +12,7 @@ from turf import bet
 import numpy as np
 
 
-def test_American_to_decimal():
+def test_american_to_decimal():
     """
     Test function to convert American to decimal odds
 

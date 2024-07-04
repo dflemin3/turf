@@ -89,5 +89,5 @@ def test_nhl_name_parser():
 
 
 if __name__ == "__main__":
-    test_team_nfl_name_parser()
+    test_nfl_name_parser()
     test_nhl_name_parser()

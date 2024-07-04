@@ -62,10 +62,10 @@ def kelly_bet(p : float, odds : float, f : float=1, bankroll : float=1.0,
     stake = (p * (b + 1.0) - 1.0) / b
 
     # Estimate wager given bankroll, fraction
-    stake = stake * fraction * bankroll
+    stake = stake * f * bankroll
 
     # Normalize bet value to 2 decimal places for USD wagers?
-    if normalize:
+    if normalize_return:
         stake = normalize_money(stake)
 
     return stake

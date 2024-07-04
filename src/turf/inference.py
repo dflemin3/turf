@@ -210,7 +210,7 @@ class _GenericModel(object):
             idata_kwargs = {}
 
         # Was the model set?
-        err_msg = f"Must build self.model before calling run_inference method. See build_model() class method"
+        err_msg = "Must build self.model before calling run_inference method. See build_model() class method"
         assert self.model is not None, err_msg
 
         # Run inference
@@ -346,9 +346,6 @@ class _GenericModel(object):
         # Extract team names from trace?
         if team_names is None:
             team_names = self.trace_.posterior.coords['teams'].values
-        
-        # Holders for results
-        results = {}
 
         # Total, home, and away SOS - nan for all elements at first
         sos = np.zeros(len(team_names),3) * np.nan
@@ -520,7 +517,7 @@ class IndependentPoisson(_GenericModel):
             # conditionally-independent Poisson distribution: y | theta ~ Poisson(theta)
 
             # Assume a Poisson likelihood for (uncorrelated) home and away points
-            pts = pm.Poisson('pts', mu=theta,
+            pts = pm.Poisson('pts', mu=theta,                                  # noqa: F841
                              observed=obs_pts, dims=("games", "att_def"))
 
 
@@ -728,8 +725,8 @@ class CorrelatedPoisson(IndependentPoisson):
             # conditionally-independent Poisson distribution: y | theta ~ Poisson(theta)
 
             # Assume a Poisson likelihood for (correlated in log theta space) home and away points
-            pts = pm.Poisson('pts', mu=theta,
-                             observed=obs_pts, dims=("games", "att_def"))
+            pts = pm.Poisson('pts', mu=theta,                                              # noqa: F841
+                             observed=obs_pts, dims=("games", "att_def")) 
 
 
 class IndependentNegativeBinomial(_GenericModel):
@@ -826,8 +823,8 @@ class IndependentNegativeBinomial(_GenericModel):
             # conditionally-independent NegativeBinomial distribution: y | theta ~ NB(theta)
 
             # Assume a Negative Binomial likelihood for (uncorrelated) home and away points
-            pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha,
-                                      observed=obs_pts, dims=("games", "att_def"))
+            pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha,                  # noqa: F841
+                                      observed=obs_pts, dims=("games", "att_def")) 
 
     
     def simulate_game(self, home_team : str,
@@ -1078,5 +1075,5 @@ class IndependentNegativeBinomialMixture(IndependentNegativeBinomial):
             # conditionally-independent NegativeBinomial distribution: y | theta ~ NB(theta)
 
             # Assume a Negative Binomial likelihood for (uncorrelated) home and away points
-            pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha,
-                                      observed=obs_pts, dims=("games", "att_def"))
+            pts = pm.NegativeBinomial('pts', mu=theta, alpha=alpha,                        # noqa: F841
+                                      observed=obs_pts, dims=("games", "att_def")) 
