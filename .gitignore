@@ -2,7 +2,8 @@
 *htmlcov
 *.coverage
 *.coverage.*
-turf.egg-info/*
+src/turf.egg-info/
+turf.egg-info/
 build/*
 dist/*
 *.ipynb_checkpoints
@@ -15,3 +16,4 @@ dist/*
 *.npz
 *.pytest_cache
 dev/*
+*.ipynb
