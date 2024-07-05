@@ -31,7 +31,13 @@ If you want run the example notebooks, unit tests, and more run
 pip install .[opp]
 ```
 to install with visualization support from `matplotlib`, `arviz`, `seaborn`. `pytest`, `coverage`, and `ruff` for linting.
-If you lack admin permissions, add the `-e` flag and see the official `pip` documentation for additional options.
+If that does not work, which, for example, can happen if you use a zsh shell, try
+```bash
+pip install '.[opp]'
+```
+
+If you lack admin permissions, add the `-e` flag: `pip install -e .`. If that does not work, 
+see the official `pip` documentation for additional options for installing locally or in edit/development mode.
 
 ### Example
 ---
