@@ -40,7 +40,6 @@ def test_american_to_decimal():
 
     err_msg = f"Test 2 failure: american_to_decimal returned incorrect odds. Truth = {truth}, test = {test}"
     assert np.allclose(truth, test, equal_nan=False), err_msg
-# end function
 
 
 def test_decimal_to_american():
@@ -71,7 +70,6 @@ def test_decimal_to_american():
 
     err_msg = f"Test 2 failure: decimal_to_american returned incorrect odds. Truth = {truth}, test = {test}"
     assert np.allclose(truth, test, equal_nan=False), err_msg
-# end function
 
 
 if __name__ == "__main__":

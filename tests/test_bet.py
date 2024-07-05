@@ -103,7 +103,6 @@ def test_returns():
 
     err_msg = f"Test 8 american_odds_return failure: - truth = {truth}, test = {test}"
     assert np.allclose(truth, test, equal_nan=False), err_msg
-# end function
 
 
 def test_normalize_money():
@@ -141,7 +140,6 @@ def test_normalize_money():
     err_msg = f"Test 4 normalize_money failure: - true = {true}, test = {test}"
     assert np.allclose(true, test), err_msg
 
-# end function
 
 if __name__ == "__main__":
     test_returns()
