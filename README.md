@@ -1,7 +1,7 @@
-***turf***
+# turf
 
-Overview
-========
+### Overview
+---
 
 `turf` is a Python library that performs Bayesian hierarchical inference and simulation of
 National Football League (NFL) and Nation Hockey League (NHL) games. These models are inspired
@@ -16,8 +16,8 @@ Tested for Python 3.10, 3.11, and 3.12.
 <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat"></a>
 </p>
 
-Installation
-============
+### Installation
+---
 
 Clone the repository then type
 ```bash
@@ -31,11 +31,12 @@ If you want run the example notebooks, unit tests, and more run
 pip install .[opp]
 ```
 to install with visualization support from `matplotlib`, `arviz`, `seaborn`. `pytest`, `coverage`, and `ruff` for linting.
+If you lack admin permissions, add the `-e` flag and see the official `pip` documentation for additional options.
 
-Simple example
-==============
+### Example
+---
 
-Below gives a simple example for how to use `turf` to run a hierarchical Bayesian inference on prior NFL season results
+Here is an example for how to use `turf` to run a hierarchical Bayesian inference on NFL season results
 to predict the results of the Thursday Night Football game, Denver at Detroit, ran and played on December 16th, 2023.
 Here, we assume a Negative Binomial likelihood for the points scored by each team.
 
@@ -84,8 +85,8 @@ print()
 # Median outcome: DEN 21 | DET 26
 ```
 
-Analyses
-========
+### Analyses
+---
 
 Check out the notebook that demonstrate how to characterize teams' offensive and defensive strengths and simulate games:
 - [Inference and simulation of NFL games](https://github.com/dflemin3/turf/blob/main/examples/nfl.ipynb)
@@ -95,4 +96,38 @@ Check out the following notebook that demonstrates how to calculate a team's str
 - [NFL SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/nfl_sos.ipynb)
 - [NHL SoS Estimation](https://github.com/dflemin3/turf/blob/main/examples/nhl_sos.ipynb)
 
-For more information on the math underpinning the models in `turf` read the [white paper](https://github.com/dflemin3/turf/blob/main/docs/whitepaper.md) 
+For more information on the math underpinning the models in `turf` read the 
+[white paper](https://github.com/dflemin3/turf/blob/main/docs/whitepaper.md) 
+
+### Tests and coverage
+
+---
+
+This repository uses `GitHub Actions` to automate linting using [`ruff`](https://github.com/astral-sh/ruff), unit tests with
+[`pytest`](https://pytest.org), and code coverage calculation with [`coverage`](https://coverage.readthedocs.io/). We also use
+`dependabot` to mitigate potential security vulnerabilities. These actions generally trigger for all pull requests and changes to
+main. 
+
+To run linting locally using `ruff`, run
+
+```bash
+ruff check
+```
+
+For unit tests and coverage, run
+
+```bash
+coverage run -m pytest -v -s
+coverage report -m
+```
+
+in the main directory, `turf` (not `src/turf`) after installing the package with additional options (see above).
+
+### Contributing
+
+---
+
+Making contributions to this code base, like documentation, unit tests, enhancements, etc... are more than welcome! Please 
+feel free to [fork](https://github.com/dflemin3/turf/fork) the repository, commit some code and then open a 
+[pull request](https://github.com/dflemin3/turf/pulls) to see if we can merge the code. Open an
+[issue](https://github.com/dflemin3/turf/issues/new/choose) to identify a bug, request a new feature, or start a relevant discussion!
