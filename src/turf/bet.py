@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@author: David P Fleming
+@author: David P Fleming, 2024
 
 This file contains routines estimating optimal stake sizes, given prior odds and
 estimated probabilities of success using the Kelly Criterion. For more information

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "turf"
-version = "0.9.1"
+version = "0.9.2"
 dynamic = ["readme"]
 authors = [{name = "David P. Fleming", email = "dpfleming91@gmail.com"}]
 maintainers = [{name = "David P. Fleming", email = "dpfleming91@gmail.com"}]

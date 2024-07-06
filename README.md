@@ -30,8 +30,8 @@ If you want run the example notebooks, unit tests, and more run
 ```bash
 pip install .[opp]
 ```
-to install with visualization support from `matplotlib`, `arviz`, `seaborn`. `pytest`, and
-`coverage` for unit tests and code coverage, and `ruff` for linting.
+This command will install optional (*opp*) visualization support from `matplotlib`, `arviz`, `seaborn`,
+unit tests and code coverage with `pytest`, and `coverage`, and `ruff` for linting.
 If that does not work, which, for example, can happen if you use a zsh shell, try
 ```bash
 pip install '.[opp]'
