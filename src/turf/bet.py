@@ -59,10 +59,10 @@ def kelly_bet(p : float, odds : float, f : float=1, bankroll : float=1.0,
     b = american_to_decimal(odds, decimals=None) - 1.0
 
     # Compute fractional stake via Kelly Criterion
-    stake = (p * (b + 1.0) - 1.0) / b
+    fstar = p - ((1 - p) / b)
 
     # Estimate wager given bankroll, fraction
-    stake = stake * f * bankroll
+    stake = fstar * f * bankroll
 
     # Normalize bet value to 2 decimal places for USD wagers?
     if normalize_return:
