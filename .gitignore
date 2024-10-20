@@ -17,3 +17,4 @@ dist/*
 *.pytest_cache
 dev/*
 *.ipynb
+*.nc
