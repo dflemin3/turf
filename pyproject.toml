@@ -23,7 +23,7 @@ dependencies = ['numpy',
                 'arviz',
                 'mechanicalsoup',
                 'beautifulsoup4',
-                'lxml',]
+                'lxml']
 keywords = ['hierarchical', 'bayesian', 'football', 'hockey', 'inference', 'monte carlo', 'simulation']
 
 [project.optional-dependencies]

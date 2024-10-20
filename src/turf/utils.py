@@ -248,19 +248,19 @@ def __nfl_home_away(x : pd.Series) -> str | int | str | int | bool:
     # Winning team was away
     if x["away_indicator"] == "@":
         away_team = x["Winner/tie"]
-        away_pts = x["Pts"]
+        away_pts = x["PtsW"]
 
         home_team = x["Loser/tie"]
-        home_pts = x["Pts.1"]
+        home_pts = x["PtsL"]
     else:
         home_team = x["Winner/tie"]
-        home_pts = x["Pts"]
+        home_pts = x["PtsW"]
 
         away_team = x["Loser/tie"]
-        away_pts = x["Pts.1"]
+        away_pts = x["PtsL"]
 
     # Did the game end in a tie?
-    if x["Pts"] == x["Pts.1"]:
+    if x["PtsW"] == x["PtsL"]:
         tie = True
     else:
         tie = False

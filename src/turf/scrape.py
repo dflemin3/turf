@@ -290,9 +290,9 @@ def pull_nfl_full_season_games_raw(year : int=2022) -> pd.DataFrame:
     df = df.astype({"Date" : object,
                     "Week" : object,
                     "home_team" : object,
-                    "home_pts" : int,
+                    "home_pts" : float,
                     "away_team" : object,
-                    "away_pts" : int,
+                    "away_pts" : float,
                     "tie" : bool})
 
     return df
