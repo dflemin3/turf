@@ -25,13 +25,13 @@ n_sims = 25000
 
 # Year, week
 year = 2024
-week = 7
+week = 8
 
 # Compute metrics and figures?
 posterior_metrics = True
 
 # Get today's date
-today = '2024_10_20' #datetime.today().strftime('%Y_%m_%d')
+today = datetime.today().strftime('%Y_%m_%d')
 
 # Path to data (make dir for data if it doesn't exist)
 current_dir = os.path.dirname(os.path.abspath(__file__))
