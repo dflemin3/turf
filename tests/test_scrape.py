@@ -9,6 +9,7 @@ Test turf data scraping functions
 """
 
 import numpy as np
+import pandas as pd
 import os
 from importlib import resources
 from turf import scrape
@@ -33,14 +34,23 @@ def test_NFLSeason_data():
     assert season.unplayed_df.empty, err_msg
 
     # Test 2) Check full schedule
-    test = season.full_schedule.iloc[15].values.tolist()
+    test = season.full_schedule.iloc[15].values
     err_msg = "Error in test 2 for test_NFLSeason_data - incorrect full schedule"
-    assert np.all(test == ['2020-09-14', '1', 'DEN', 'TEN']), err_msg
+    assert np.all(np.asarray([pd.to_datetime('2020-09-14', format='%Y-%m-%d'),
+                              '1', 
+                              'DEN', 
+                              'TEN']) == test), err_msg
 
     # Test 3) Check played df
     test = season.played_df.iloc[25].values.tolist()
     err_msg = "Error in test 3 for test_NFLSeason_data - incorrect played_df"
-    assert(np.all(test == ['2020-09-20', '2', 'NYJ', 13, 'SF', 31])), err_msg
+    assert np.all(np.asarray([pd.to_datetime('2020-09-20', format='%Y-%m-%d'),
+                              '2', 
+                              'NYJ', 
+                              13.0, 
+                              'SF', 
+                              31.0,
+                              False]) == test), err_msg
 
 
 def test_NHLSeason_data():
@@ -61,10 +71,15 @@ def test_NHLSeason_data():
     err_msg = "Error in test 1 for test_NHLSeason_data - incorrect unplayed_df"
     assert season.unplayed_df.empty, err_msg
 
-    # Test 3) Check played df
+    # Test 2) Check played df
     test = season.played_df.iloc[653].values.tolist()
-    err_msg = "Error in test 3 for test_NHLSeason_data - incorrect played_df"
-    assert(np.all(test == ['2019-01-07', 'STL', 3, 'PHI', 0, np.nan])), err_msg
+    err_msg = "Error in test 2 for test_NHLSeason_data - incorrect played_df"
+    assert np.all(np.asarray([pd.to_datetime('2019-01-07', format='%Y-%m-%d'),
+                              'PHI', 
+                              0, 
+                              'STL', 
+                              3, 
+                              False]) == test), err_msg
 
 
 if __name__ == "__main__":

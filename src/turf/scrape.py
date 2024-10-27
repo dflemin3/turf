@@ -32,7 +32,8 @@ class _GenericSeason(object):
     and results
     """
 
-    def __init__(self, year : int=2022, path : str=None) -> None: 
+    def __init__(self, year : int=2022, path : str=None,
+                 start_date : str=None, end_date : str=None) -> None: 
         """
         Season object initialization function that pulls data for the given year
         from some url and automatically processes the data to compute the 
@@ -47,6 +48,12 @@ class _GenericSeason(object):
         path : str (optional)
             Path to pre-cached data to build Season object. If this is provided,
             this file is loaded and used instead of scraping the data.
+        start_date : str (optional)
+            Date str in %Y-%m-%d format where game results equal or prior to 
+            start_date are set to np.nan. Defaults to None.
+        end_date : str (optional)
+            Date str in %Y-%m-%d format where game results equal or after to 
+            end_date are set to np.nan. Defaults to None.
         """
 
         # Cache year
@@ -57,6 +64,12 @@ class _GenericSeason(object):
 
         # Cache path
         self.path = path
+
+        # Start and end dates (convert to datetime if possible)
+        self.start_date = pd.to_datetime(start_date,
+                                         format='%Y-%m-%d') if start_date is not None else start_date
+        self.end_date = pd.to_datetime(end_date,
+                                      format='%Y-%m-%d') if end_date is not None else end_date
         
 
     def __repr__(self) -> str:
@@ -64,7 +77,16 @@ class _GenericSeason(object):
         String output for print(Season)
         """
 
-        return f"{self.year}-{self.year+1} season data"
+        # Information on season year
+        ret = f"{self.year}-{self.year+1} season data"
+        
+        # And when we want data to start (and end)
+        if self.start_date is not None:
+            ret += f" beginning {self.start_date}"
+        if self.end_date is not None:
+            ret += f" and ending {self.end_date}"
+
+        return ret
 
     
     def save(self, path : str="season.csv") -> None:
@@ -91,8 +113,8 @@ class NFLSeason(_GenericSeason):
     and results
     """
 
-    def __init__(self, year : int=2022, 
-                 path : str=None) -> None: 
+    def __init__(self, year : int=2022, path : str=None,
+                 start_date : str=None, end_date : str=None) -> None:  
         """
         Season object initialization function that pulls data for the given year
         from https://www.pro-football-reference.com/years/{year}/games.htm and
@@ -107,10 +129,17 @@ class NFLSeason(_GenericSeason):
         path : str (optional)
             Path to pre-cached data to build Season object. If this is provided,
             this file is loaded and used instead of scraping the data.
+        start_date : str (optional)
+            Date str in %Y-%m-%d format where game results equal or prior to 
+            start_date are set to np.nan. Defaults to None.
+        end_date : str (optional)
+            Date str in %Y-%m-%d format where game results equal or after to 
+            end_date are set to np.nan. Defaults to None.
         """
 
         # Init _GenericModel super (builds model and does everything else)
-        super().__init__(year=year, path=path)
+        super().__init__(year=year, path=path, start_date=start_date,
+                         end_date=end_date)
 
        # Load data from local path or copy df
         if self.path is not None:
@@ -122,8 +151,27 @@ class NFLSeason(_GenericSeason):
         else:
             self.raw_season_df = pull_nfl_full_season_games_raw(year=self.year)
 
+        # Parse dates
+        self.raw_season_df['date'] = self.raw_season_df['date'].map(lambda x : pd.to_datetime(x, 
+                                                                                              format='%Y-%m-%d'))
+
         # Convert Week column into string to accomodate playoffs as needed
         self.raw_season_df["week"] = self.raw_season_df["week"].astype(str)
+
+        # Apply a start or end date filter?
+        if self.start_date is not None:
+            # Set game results to NaN prior to, or equal to, start_date
+            mask = (self.raw_season_df['date'] <=  self.start_date)
+            self.raw_season_df.loc[mask, 'home_pts'] = np.nan
+            self.raw_season_df.loc[mask, 'away_pts'] = np.nan
+            self.raw_season_df.loc[mask, 'tie'] = np.nan
+        
+        if self.end_date is not None:
+            # Set game results to NaN after, or equal to, end_date
+            mask = (self.raw_season_df['date'] >=  self.end_date)
+            self.raw_season_df.loc[mask, 'home_pts'] = np.nan
+            self.raw_season_df.loc[mask, 'away_pts'] = np.nan
+            self.raw_season_df.loc[mask, 'tie'] = np.nan
 
         # First save the full season schedule of released games into a separate df
         self.full_schedule = self.raw_season_df[["date", "week", "home_team", "away_team"]].copy()
@@ -150,8 +198,8 @@ class NHLSeason(_GenericSeason):
     and results
     """
 
-    def __init__(self, year : int=2022,
-                 path : str=None,
+    def __init__(self, year : int=2022, path : str=None,
+                 start_date : str=None, end_date : str=None,
                  regulation_adjustment : bool=True) -> None: 
         """
         Season object initialization function that pulls data for the given year
@@ -167,6 +215,12 @@ class NHLSeason(_GenericSeason):
         path : str (optional)
             Path to pre-cached data to build Season object. If this is provided,
             this file is loaded and used instead of scraping the data.
+        start_date : str (optional)
+            Date str in %Y-%m-%d format where game results equal or prior to 
+            start_date are set to np.nan. Defaults to None.
+        end_date : str (optional)
+            Date str in %Y-%m-%d format where game results equal or after to 
+            end_date are set to np.nan. Defaults to None.
         regulation_adjustment : bool (optional)
             Whether or not to adjust scores to reflect regulation outcomes, that is,
             if a game went to OT and team x won 5-4, the scores would be updated to
@@ -175,7 +229,8 @@ class NHLSeason(_GenericSeason):
         """
 
         # Init _GenericModel super (builds model and does everything else)
-        super().__init__(year=year, path=path)
+        super().__init__(year=year, path=path, start_date=start_date,
+                         end_date=end_date)
 
        # Load data from local path
         if self.path is not None:
@@ -187,13 +242,34 @@ class NHLSeason(_GenericSeason):
         else:
             self.raw_season_df = pull_nhl_full_season_games_raw(year=self.year)
 
+        # Parse dates
+        self.raw_season_df['date'] = self.raw_season_df['date'].map(lambda x : pd.to_datetime(x, 
+                                                                                              format='%Y-%m-%d'))
+
+        # Apply a start or end date filter?
+        if self.start_date is not None:
+            # Set game results to NaN prior to, or equal to, start_date
+            mask = (self.raw_season_df['date'] <=  self.start_date)
+            self.raw_season_df.loc[mask, 'home_pts'] = np.nan
+            self.raw_season_df.loc[mask, 'away_pts'] = np.nan
+            self.raw_season_df.loc[mask, 'ot_indicator'] = np.nan
+        
+        if self.end_date is not None:
+            # Set game results to NaN after, or equal to, end_date
+            mask = (self.raw_season_df['date'] >=  self.end_date)
+            self.raw_season_df.loc[mask, 'home_pts'] = np.nan
+            self.raw_season_df.loc[mask, 'away_pts'] = np.nan
+            self.raw_season_df.loc[mask, 'ot_indicator'] = np.nan
+
         # Adjust score to regulation outcomes?
         if regulation_adjustment:
             
             # Get OT outcomes
-            mask = (self.raw_season_df['ot_indicator'] == 'OT')
-            away = self.raw_season_df.loc[mask, 'away_pts'].values.squeeze()
-            home = self.raw_season_df.loc[mask, 'home_pts'].values.squeeze()
+            mask = self.raw_season_df['ot_indicator']
+            away = self.raw_season_df.loc[self.raw_season_df['ot_indicator'],
+                                          'away_pts'].values.squeeze()
+            home = self.raw_season_df.loc[self.raw_season_df['ot_indicator'],
+                                          'home_pts'].values.squeeze()
             
             # Find and QC regulation score
             score = np.max([np.min([away, home], axis=0), np.ones(len(away))], axis=0)
@@ -327,18 +403,24 @@ def pull_nhl_full_season_games_raw(year : int=2022) -> pd.DataFrame:
     df = pd.read_html(url, parse_dates=True, attrs={'id': 'games'},
                       header=0, index_col=0)[0]
 
+    # Reset index as date is the index
+    df.reset_index(drop=False, inplace=True)
+
     # Rename some column; drop irrelevant ones
-    df.rename(columns={"Unnamed: 5" : "ot_indicator", "Visitor" : "away_team",
+    df.rename(columns={"Unnamed: 6" : "ot_indicator", "Visitor" : "away_team",
                        "G" : "away_pts", "Home" : "home_team", "G.1" : "home_pts",
                        "Date" : "date"},
               inplace=True)
-    df.drop(columns=["Att.", "LOG", "Notes"], inplace=True)
+    
+    # Restrict to columns we care about
+    df = df[["date", "home_team", "home_pts", "away_team",
+             "away_pts", "ot_indicator"]].copy()
 
     # Map the names to standard abbreviations
     df["away_team"] = df["away_team"].map(ut._nhl_name_conv)
     df["home_team"] = df["home_team"].map(ut._nhl_name_conv)
 
-    # Make date a column
-    df.reset_index(drop=False, inplace=True)
+    # Convert OT indicator to bool
+    df["ot_indicator"] = df["ot_indicator"].map(lambda x : True if ((x == 'OT') or (x == 'SO)')) else False) 
     
     return df
