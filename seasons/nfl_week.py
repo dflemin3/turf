@@ -21,7 +21,7 @@ import seaborn as sns
 seed = None
 
 # Number of sims to run per game
-n_sims = 250
+n_sims = 25000
 
 # Year, week
 year = 2024
@@ -31,7 +31,7 @@ week = 7
 posterior_metrics = True
 
 # Get today's date
-today = datetime.today().strftime('%Y_%m_%d')
+today = '2024_10_20' #datetime.today().strftime('%Y_%m_%d')
 
 # Path to data (make dir for data if it doesn't exist)
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -168,7 +168,7 @@ if posterior_metrics:
     plt.clf()
 
 ### Simulate select games with odds (collected at time of running script)
-away_teams = ["DET", "HST", "PHI", "SEA", "CIN", "TEN", "MIA", "CAR", "LV", "KC", "NYJ"]
+away_teams = ["DET", 'HST', "PHI", "SEA", "CIN", "TEN", "MIA", "CAR", "LV", "KC", "NYJ"]
 home_teams = ["MIN", "GB", "NYG", "ATL", "CLV", "BUF", "IND", "WAS", "LAR", "SF", "PIT"]
 ous = [50.5, 48, 42.5, 52, 41.5, 41, 44.5, 51.5, 43.5, 47, 39]
 home_spreads = [-2, -3, 3, -3, 5.5, -9.5, -3, -9.5, -7, -2, 2]
