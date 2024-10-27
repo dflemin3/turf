@@ -1,4 +1,4 @@
-name: pytest unit tests and coverage  
+name: pytest unit tests and coverage, plus linting with ruff 
   
 on:
 

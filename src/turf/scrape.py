@@ -123,10 +123,10 @@ class NFLSeason(_GenericSeason):
             self.raw_season_df = pull_nfl_full_season_games_raw(year=self.year)
 
         # Convert Week column into string to accomodate playoffs as needed
-        self.raw_season_df["Week"] = self.raw_season_df["Week"].astype(str)
+        self.raw_season_df["week"] = self.raw_season_df["week"].astype(str)
 
         # First save the full season schedule of released games into a separate df
-        self.full_schedule = self.raw_season_df[["Date", "Week", "home_team", "away_team"]].copy()
+        self.full_schedule = self.raw_season_df[["date", "week", "home_team", "away_team"]].copy()
 
         # Then drop all rows with NaN, that is, those without scores
         self.played_df = self.raw_season_df.dropna(how="any").reset_index(drop=True)
@@ -200,7 +200,7 @@ class NHLSeason(_GenericSeason):
             self.raw_season_df.loc[mask, ['away_pts', 'home_pts']] = np.vstack([score, score]).T
 
         # First save the full season schedule of released games into a separate df
-        self.full_schedule = self.raw_season_df[['Date', 'away_team', 'home_team']].copy()
+        self.full_schedule = self.raw_season_df[['date', 'away_team', 'home_team']].copy()
 
         # Then drop all rows with NaN, that is, those without scores
         self.played_df = self.raw_season_df.dropna(subset=['away_pts', 'home_pts'],
@@ -282,13 +282,18 @@ def pull_nfl_full_season_games_raw(year : int=2022) -> pd.DataFrame:
     # Set dtype
     df["Week"] = df["Week"].astype(str)
 
+    # Rename columns
+    df.rename(columns={'Week' : 'week',
+                       'Date' : 'date'},
+              inplace=True)
+
     # Map the names to standard internal abbreviations
     df["away_team"] = df["away_team"].map(ut._nfl_name_conv)
     df["home_team"] = df["home_team"].map(ut._nfl_name_conv)
 
     # Correct datatypes
-    df = df.astype({"Date" : object,
-                    "Week" : object,
+    df = df.astype({"date" : object,
+                    "week" : object,
                     "home_team" : object,
                     "home_pts" : float,
                     "away_team" : object,
@@ -324,7 +329,8 @@ def pull_nhl_full_season_games_raw(year : int=2022) -> pd.DataFrame:
 
     # Rename some column; drop irrelevant ones
     df.rename(columns={"Unnamed: 5" : "ot_indicator", "Visitor" : "away_team",
-                       "G" : "away_pts", "Home" : "home_team", "G.1" : "home_pts"},
+                       "G" : "away_pts", "Home" : "home_team", "G.1" : "home_pts",
+                       "Date" : "date"},
               inplace=True)
     df.drop(columns=["Att.", "LOG", "Notes"], inplace=True)
 
