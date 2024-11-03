@@ -25,7 +25,7 @@ n_sims = 25000
 
 # Year, week
 year = 2024
-week = 8
+week = 9
 
 # Compute metrics and figures?
 posterior_metrics = True
@@ -168,10 +168,12 @@ if posterior_metrics:
     plt.clf()
 
 ### Simulate select games with odds (collected at time of running script)
-away_teams = ["DET", 'HST', "PHI", "SEA", "CIN", "TEN", "MIA", "CAR", "LV", "KC", "NYJ"]
-home_teams = ["MIN", "GB", "NYG", "ATL", "CLV", "BUF", "IND", "WAS", "LAR", "SF", "PIT"]
-ous = [50.5, 48, 42.5, 52, 41.5, 41, 44.5, 51.5, 43.5, 47, 39]
-home_spreads = [-2, -3, 3, -3, 5.5, -9.5, -3, -9.5, -7, -2, 2]
+away_teams = ["DAL", "DEN", "WAS", "MIA", "LV", "LAC", "NE", "NO", "CHI", "JAX", "DET", "LAR"]
+home_teams = ["ATL", "BLT", "NYG", "BUF", "CIN", "CLV", "TEN", "CAR", "ARZ", "PHI", "GB", "SEA"]
+ous = [51.5, 46.5, 44, 49.5, 45, 42.5, 38.5, 43.5, 44.5, 46, 48, 48.5]
+ous_vegas = [-110, -110, -110, -110, -110, -110, -110, -110, -110, -110, -110, -110]
+home_spreads = [-3, -9, 4, -6, -7.5, 1.5, -3.5, 7, -2, -7, 2.5, 1.5]
+home_spreads_vegas = [-125, -110, -110, -110, -110, -110, -105, -105, -110, -115, 100, -105]
 
 # Holders
 totals = []
@@ -212,7 +214,9 @@ sims = pd.DataFrame.from_dict({'home_team' : home_teams,
                                'away_team' : away_teams,
                                'n_sims' : [n_sims for _ in range(len(home_teams))],
                                'over_under' : ous,
+                               'over_under_vegas_odds' : ous_vegas,
                                'home_spread' : home_spreads,
+                               'home_spread_vegas_odds' : home_spreads_vegas,
                                'mean_total_pts' : totals,
                                'mean_home_pts' : home_pts_mean,
                                'mean_away_pts' : away_pts_mean,
