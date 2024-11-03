@@ -175,11 +175,10 @@ def american_implied_probability(odds : float) -> float:
 
     # Handle - odds differently than +
     if odds < 0:
-        prob = 100 * -odds / (-odds + 100)
+        prob = -odds / (-odds + 100)
     else:
-        prob = 10000 / (odds + 100)
+        prob = 100 / (odds + 100)
 
-    prob = 0
     return prob
 
 
