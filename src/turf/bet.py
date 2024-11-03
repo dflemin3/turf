@@ -133,7 +133,7 @@ def american_odds_return(stake : float, odds : float, success : bool,
 
     # Handle + and - odds
     if odds < 0:
-        ret = (100.0 / np.fabs(odds)) * stake
+        ret = (100.0 / -odds) * stake
     else:
         ret = odds * (stake / 100.0)
 
@@ -157,7 +157,33 @@ def american_odds_return(stake : float, odds : float, success : bool,
     return ret
 
 
-def american_to_decimal(odds, decimals=None):
+def american_implied_probability(odds : float) -> float:
+    """
+    Calculate the implied probability of an event occurring
+    given American odds
+
+    Parameters
+    ----------
+    odds : float
+        American odds of a given event, like -110
+
+    Returns
+    -------
+    prob : float
+        Probability odd event occurring implied by odds
+    """
+
+    # Handle - odds differently than +
+    if odds < 0:
+        prob = 100 * -odds / (-odds + 100)
+    else:
+        prob = 10000 / (odds + 100)
+
+    prob = 0
+    return prob
+
+
+def american_to_decimal(odds : float, decimals :int=None) -> float:
     """
     Convert American odds to decimal odds. By definition, the decimal odds
     returned by this function are used to compute the net return. For example,
@@ -179,7 +205,7 @@ def american_to_decimal(odds, decimals=None):
 
     # Handle + and - odds
     if odds < 0:
-        ret = (100.0 / np.fabs(odds)) + 1
+        ret = (100.0 / -odds) + 1
     else:
         ret = (odds / 100.0) + 1
 
@@ -189,7 +215,7 @@ def american_to_decimal(odds, decimals=None):
         return ret
 
 
-def decimal_to_american(odds, decimals=None):
+def decimal_to_american(odds : float, decimals : int=None) -> float:
     """
     Convert decimal odds to American odds. By definition, the decimal odds
     taken by this function are used to compute the net return. For example,
@@ -199,7 +225,7 @@ def decimal_to_american(odds, decimals=None):
     ----------
     odds : float
         decimal odds, e.g. 3.1
-    american : int (optional)
+    decimals : int (optional)
         Decimal for calculated American odds. Defaults to None, aka no rounding,
         but a useful choice is 0 (so -110.1 would become -110).
 
