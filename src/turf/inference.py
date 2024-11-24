@@ -264,7 +264,7 @@ class _GenericModel(object):
             raise RuntimeError(err_msg)
 
         # Extract team names from trace
-        if team_names is not None:
+        if team_names is None:
             team_names = self.trace_.posterior.coords['teams'].values
         sos = np.zeros(len(team_names))
 
