@@ -25,7 +25,7 @@ n_sims = 25000
 
 # Year, week
 year = 2024
-week = 14
+week = 15
 
 # Compute metrics and figures?
 posterior_metrics = True
@@ -168,13 +168,13 @@ if posterior_metrics:
     plt.clf()
 
 ### Simulate select games with odds (collected at time of running script)
-away_teams = ["NYJ", "LV", "NO", "JAX", "SEA", "BUF", "CHI", "LAC"]
-home_teams = ["MIA", "TB", "NYG", "TEN", "ARZ", "LAR", "SF", "KC"]
-ous = [46.5, 50.5, 39.5, 32.5, 45.5, 50, 43.5, 43]
-ous_vegas = [-110, -115, -110, -110, -110, -110, -110, -110]
-home_spreads = [-8.5, -17.5, 9.5, -4.5, -3, 3.5, -3, -4]
-home_spreads_vegas = [-120, -120, -115, -115, 100, -105, -110, -110]
-home_ml_vegas = [-450, -2500, 350, -230, -155, 158, -160, -220]
+away_teams = ["KC", "BLT", "MIA", "WAS", "DAL", "CIN", "NYJ", "BUF", "PIT", "TB", "IND", "NE", "GB"]
+home_teams = ["CLV", "NYG", "HST", "NO", "CAR", "TEN", "JAX", "DET", "PHI", "LAC", "DEN", "ARZ", "SEA"]
+ous = [41, 43, 46, 44, 42, 46, 41.5, 54.5, 43, 46, 43.5, 46, 46.5]
+ous_vegas = [-110, -115, -110, -115, -110, -110, -110, -105, -115, -110, -115, -105, -110]
+home_spreads = [4, 17, -2.5, 7.5, -2.5, 6, 3, -2, -5.5, -3, -4.5, -6.5, 2.5]
+home_spreads_vegas = [-110, -115, -120, -110, -125, -110, 100, -115, -110, -105, -115, -110, -105]
+home_ml_vegas = [196, 950, -150, 320, -135, 215, 148, -140, -260, -155, -220, -278, 118]
 
 # Holders
 totals = []
