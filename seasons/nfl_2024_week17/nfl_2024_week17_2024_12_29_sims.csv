@@ -1,0 +1,4 @@
+home_team,away_team,n_sims,over_under,over_under_vegas_odds,home_spread,home_spread_vegas_odds,home_ml_vegas_odds,mean_total_pts,mean_home_pts,mean_away_pts,prob_over,prob_home_cover,prob_home_ml
+CLV,MIA,25000,33,100,3.0,100,150,39.25956,18.22332,21.03624,0.66168,0.49312,0.38948
+MIN,GB,25000,49,-110,0.0,-110,-115,47.57772,23.74168,23.83604,0.41048,0.47964,0.47964
+WAS,ATL,25000,46,-115,-3.5,-105,-195,50.8386,28.66348,22.17512,0.57512,0.5672,0.65
