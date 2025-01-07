@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 :py:mod:`scrape.py` - Data scraping functions
 ---------------------------------------------
@@ -188,7 +187,7 @@ class NFLSeason(_GenericSeason):
         String output for print(Season)
         """
 
-        return f"{self.year}-{self.year+1} NFL season data up to Week {self.week}"
+        return f"{self.year}-{self.year+1} NFL season data"
 
 
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 Test functions that convert between American and decimal odds, and vice versa.

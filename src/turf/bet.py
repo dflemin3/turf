@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 @author: David P Fleming, 2024
 
@@ -10,7 +8,6 @@ https://en.wikipedia.org/wiki/Kelly_criterion
 
 """
 
-# Imports
 import numpy as np
 
 

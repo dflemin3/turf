@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 :py:mod:`utils.py` - Utility functions
 --------------------------------------
